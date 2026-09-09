@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+librosa
+soundfile
+numpy
+transformers
+torch
+firebase-admin
+python-multipart
+python-dotenv
+websockets
+
+supabase
