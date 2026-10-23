@@ -1,103 +1,334 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  History as HistoryIcon,
+  Search,
+  Filter,
+  Trash2,
+  ExternalLink,
+  ArrowLeft,
+  X,
+  FileAudio,
+  ShieldAlert,
+  ShieldCheck,
+  Clock,
+  Cpu
+} from 'lucide-react';
 import api from '../services/api';
-import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
+import RiskBadge from '../components/analysis/RiskBadge';
 
 export default function History() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchLogs();
-  }, []);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [riskFilter, setRiskFilter] = useState('ALL');
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchLogs = async () => {
     try {
-      const res = await api.get('/history');
-      setLogs(res.data);
+      const res = await api.get('/analysis-history');
+      setLogs(res.data || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch history:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
+  const handleDelete = async (eventId, e) => {
+    e.stopPropagation();
+    if (!window.confirm(`Are you sure you want to delete analysis record ${eventId}?`)) return;
+
+    setDeletingId(eventId);
+    try {
+      await api.delete(`/analysis/${eventId}`);
+      setLogs((prev) => prev.filter((item) => item.event_id !== eventId));
+      if (selectedRecord?.event_id === eventId) {
+        setSelectedRecord(null);
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Failed to delete record. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const filteredLogs = logs.filter((item) => {
+    const matchesSearch =
+      (item.event_id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.prediction || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.model_name || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFilter =
+      riskFilter === 'ALL' || item.final_risk === riskFilter;
+
+    return matchesSearch && matchesFilter;
+  });
+
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center gap-4 mb-8">
-        <Link to="/dashboard" className="text-slate-400 hover:text-white transition-colors">
-          <ArrowLeft size={24} />
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/dashboard"
+            className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft size={18} />
+          </Link>
+          <div>
+            <span className="text-xs font-mono text-[#00d4ff] uppercase tracking-wider">
+              TELEMETRY ARCHIVE
+            </span>
+            <h1 className="text-3xl font-display font-bold text-white">
+              Analysis History Vault
+            </h1>
+          </div>
+        </div>
+
+        <Link to="/analyze">
+          <Button variant="primary" size="md">
+            New Voice Analysis
+          </Button>
         </Link>
-        <h2 className="text-3xl font-bold">Analysis History</h2>
       </div>
 
-      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Search Input */}
+        <div className="relative w-full md:w-80">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by Event ID or label..."
+            className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-xs text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] transition-all font-mono"
+          />
+          <Search size={16} className="absolute left-3.5 top-3 text-slate-500" />
+        </div>
+
+        {/* Risk Level Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+          {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((lvl) => (
+            <button
+              key={lvl}
+              onClick={() => setRiskFilter(lvl)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all ${
+                riskFilter === lvl
+                  ? 'bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40 shadow-[0_0_15px_rgba(0,212,255,0.2)]'
+                  : 'bg-white/5 text-slate-400 border border-white/5 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              {lvl}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Table / Empty State */}
+      <Card variant="default" className="p-0 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-slate-400">Loading history...</div>
+          <div className="p-16 text-center text-slate-500 font-mono text-sm">
+            Retrieving verification logs...
+          </div>
+        ) : filteredLogs.length === 0 ? (
+          <div className="p-16 text-center flex flex-col items-center">
+            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 mb-3">
+              <FileAudio size={24} />
+            </div>
+            <h4 className="text-base font-semibold text-white">No Matching Records</h4>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mb-4">
+              {logs.length === 0
+                ? "You haven't conducted any analyses yet."
+                : 'No historical records match your search query or filter criteria.'}
+            </p>
+            {logs.length === 0 && (
+              <Link to="/analyze">
+                <Button variant="primary" size="sm">
+                  Start Analysis
+                </Button>
+              </Link>
+            )}
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="bg-slate-900 text-slate-400 border-b border-slate-700 text-sm uppercase tracking-wider">
-                  <th className="p-4 font-medium">Audio ID</th>
-                  <th className="p-4 font-medium">User</th>
-                  <th className="p-4 font-medium">Type</th>
-                  <th className="p-4 font-medium">Duration</th>
-                  <th className="p-4 font-medium">AI Score</th>
-                  <th className="p-4 font-medium">Result</th>
-                  <th className="p-4 font-medium">Analyzed</th>
+                <tr className="border-b border-white/[0.08] bg-white/[0.02] text-xs font-mono text-slate-400 uppercase tracking-wider">
+                  <th className="py-4 px-6">Event ID</th>
+                  <th className="py-4 px-6">Type</th>
+                  <th className="py-4 px-6">Duration</th>
+                  <th className="py-4 px-6">Classification</th>
+                  <th className="py-4 px-6">Spoof Score</th>
+                  <th className="py-4 px-6">Risk Level</th>
+                  <th className="py-4 px-6">Timestamp</th>
+                  <th className="py-4 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {logs.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="p-8 text-center text-slate-500">No events logged yet.</td>
+              <tbody className="divide-y divide-white/[0.05]">
+                {filteredLogs.map((item) => (
+                  <tr
+                    key={item.event_id || item.id}
+                    onClick={() => setSelectedRecord(item)}
+                    className="hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                  >
+                    <td className="py-4 px-6 font-mono text-[#00d4ff] font-semibold">
+                      {item.event_id}
+                    </td>
+                    <td className="py-4 px-6 text-slate-300 capitalize text-xs font-mono">
+                      {item.mode || 'Upload'}
+                    </td>
+                    <td className="py-4 px-6 text-slate-400 text-xs font-mono">
+                      {item.duration ? `${item.duration}s` : 'N/A'}
+                    </td>
+                    <td className="py-4 px-6">
+                      <span
+                        className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border ${
+                          item.prediction === 'AI_GENERATED'
+                            ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                            : item.prediction === 'HUMAN_SPEECH'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                            : 'bg-slate-500/10 text-slate-400 border-slate-500/30'
+                        }`}
+                      >
+                        {item.prediction || 'INCONCLUSIVE'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 font-mono font-semibold text-white">
+                      {item.fake_score !== undefined
+                        ? `${(item.fake_score * 100).toFixed(1)}%`
+                        : item.voice_score !== undefined
+                        ? `${(item.voice_score * 100).toFixed(1)}%`
+                        : '0%'}
+                    </td>
+                    <td className="py-4 px-6">
+                      <RiskBadge riskLevel={item.final_risk || 'LOW'} size="sm" />
+                    </td>
+                    <td className="py-4 px-6 text-xs text-slate-400 font-mono">
+                      {new Date(item.created_at).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <button
+                        onClick={(e) => handleDelete(item.event_id, e)}
+                        disabled={deletingId === item.event_id}
+                        className="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors opacity-80 group-hover:opacity-100"
+                        title="Delete audit record"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
                   </tr>
-                ) : (
-                  logs.map((log, i) => (
-                    <motion.tr 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      key={log.id} 
-                      className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors"
-                    >
-                      <td className="p-4 text-sm text-slate-300 font-mono">
-                        {log.event_id}
-                      </td>
-                      <td className="p-4 text-sm text-slate-400 truncate max-w-[120px]" title={log.user_id}>
-                        {log.user_id}
-                      </td>
-                      <td className="p-4 capitalize text-sm">{log.mode}</td>
-                      <td className="p-4 text-sm text-slate-400">{log.duration ? `${log.duration} sec` : 'N/A'}</td>
-                      <td className="p-4 font-mono text-cyan-400">
-                        {(log.voice_score * 100).toFixed(1)}%
-                      </td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${
-                          log.final_risk === 'LOW' ? 'bg-green-500/20 text-green-400' :
-                          log.final_risk === 'MEDIUM' ? 'bg-yellow-500/20 text-yellow-400' :
-                          log.final_risk === 'HIGH' ? 'bg-orange-500/20 text-orange-400' :
-                          'bg-red-500/20 text-red-400'
-                        }`}>
-                          {log.final_risk}
-                        </span>
-                      </td>
-                      <td className="p-4 text-sm text-slate-400">
-                        {new Date(log.created_at).toLocaleString('en-GB', {
-                          day: '2-digit', month: 'short', year: 'numeric',
-                          hour: '2-digit', minute:'2-digit'
-                        })}
-                      </td>
-                    </motion.tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </Card>
+
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {selectedRecord && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-xl bg-[#0f1117] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative"
+            >
+              <button
+                onClick={() => setSelectedRecord(null)}
+                className="absolute top-6 right-6 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-mono text-[#00d4ff] uppercase">
+                  RECORD DETAILS
+                </span>
+                <span className="text-xs text-slate-500">&bull;</span>
+                <span className="text-xs font-mono text-slate-400">{selectedRecord.event_id}</span>
+              </div>
+
+              <h3 className="text-2xl font-display font-bold text-white mb-6">
+                Verification Telemetry
+              </h3>
+
+              <div className="space-y-6">
+                <RiskBadge riskLevel={selectedRecord.final_risk || 'LOW'} showDescription={false} />
+
+                {/* Score and Classification */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-[#161b27] border border-white/[0.06]">
+                    <span className="text-xs font-mono text-slate-400 block mb-1">PREDICTION</span>
+                    <span className="text-lg font-display font-bold text-white">
+                      {selectedRecord.prediction || 'UNKNOWN'}
+                    </span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#161b27] border border-white/[0.06]">
+                    <span className="text-xs font-mono text-slate-400 block mb-1">SYNTHETIC SCORE</span>
+                    <span className="text-lg font-display font-bold text-[#00d4ff]">
+                      {selectedRecord.fake_score !== undefined
+                        ? `${(selectedRecord.fake_score * 100).toFixed(1)}%`
+                        : selectedRecord.voice_score !== undefined
+                        ? `${(selectedRecord.voice_score * 100).toFixed(1)}%`
+                        : '0%'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Risk Explanation */}
+                {selectedRecord.risk_explanation && (
+                  <div className="p-4 rounded-xl bg-[#07080f] border border-white/[0.06] text-xs text-slate-300 leading-relaxed font-sans">
+                    <span className="text-slate-400 font-mono uppercase block mb-1">Risk Summary:</span>
+                    {selectedRecord.risk_explanation}
+                  </div>
+                )}
+
+                {/* Technical Meta */}
+                <div className="p-4 rounded-2xl bg-[#161b27] border border-white/[0.06] text-xs font-mono text-slate-400 space-y-2">
+                  <div className="flex justify-between">
+                    <span>Model Identifier:</span>
+                    <span className="text-slate-200">{selectedRecord.model_name || 'Deepfake-V2'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Audio Duration:</span>
+                    <span className="text-slate-200">{selectedRecord.duration ? `${selectedRecord.duration}s` : 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Recorded Timestamp:</span>
+                    <span className="text-slate-200">
+                      {new Date(selectedRecord.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-end">
+                <Button variant="secondary" size="sm" onClick={() => setSelectedRecord(null)}>
+                  Close
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
