@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import VoiceAnalysis from './pages/VoiceAnalysis';
 import History from './pages/History';
+import TechLoader from './components/ui/TechLoader';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -62,14 +63,7 @@ function App() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#07080f] text-white">
-        <div className="w-12 h-12 rounded-2xl border-2 border-transparent border-t-[#00d4ff] border-r-[#a855f7] animate-spin mb-4" />
-        <span className="text-xs font-mono uppercase tracking-widest text-slate-400">
-          Initializing VoiceShield Core...
-        </span>
-      </div>
-    );
+    return <TechLoader text="Initializing VoiceShield Core..." />;
   }
 
   return (

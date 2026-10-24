@@ -86,3 +86,38 @@ h1, h2, h3, h4, .font-display {
     scroll-behavior: auto !important;
   }
 }
+
+/* High-Tech Loader Keyframes & Utilities */
+@keyframes tech-ripple {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.85;
+    box-shadow: 0 0 15px rgba(0, 245, 212, 0.4);
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0);
+  }
+}
+
+.animate-tech-ripple {
+  animation: tech-ripple 2.4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+@keyframes cyber-scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+.animate-cyber-scan {
+  animation: cyber-scan 1.8s ease-in-out infinite;
+}
+
