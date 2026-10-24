@@ -4,7 +4,6 @@ import {
   Activity,
   Mic,
   ShieldAlert,
-  ShieldCheck,
   Clock,
   ArrowRight,
   TrendingUp,
@@ -16,6 +15,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import RiskBadge from '../components/analysis/RiskBadge';
+import ShieldMicLogo from '../components/ui/ShieldMicLogo';
 
 export default function Dashboard({ user, username }) {
   const [history, setHistory] = useState([]);
@@ -151,7 +151,7 @@ export default function Dashboard({ user, username }) {
           <div className="flex items-center justify-between">
             <span className="text-xs font-mono text-emerald-400 uppercase">Authentic Voices</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <ShieldCheck size={18} />
+              <ShieldMicLogo size={18} />
             </div>
           </div>
           <div className="mt-4">

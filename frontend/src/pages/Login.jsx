@@ -9,9 +9,10 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider } from '../services/auth';
 import api from '../services/api';
-import { ShieldCheck, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import ShieldMicLogo from '../components/ui/ShieldMicLogo';
 
 export default function Login({ onLoginSuccess }) {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -135,7 +136,7 @@ export default function Login({ onLoginSuccess }) {
         className="flex flex-col items-center mb-8 text-center"
       >
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#00d4ff]/20 to-[#a855f7]/20 border border-[#00d4ff]/40 flex items-center justify-center text-[#00d4ff] shadow-[0_0_30px_rgba(0,212,255,0.3)] mb-4">
-          <ShieldCheck size={32} />
+          <ShieldMicLogo size={32} />
         </div>
         <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white">
           {isSignUp ? 'Create VoiceShield Account' : 'Welcome to VoiceShield'}

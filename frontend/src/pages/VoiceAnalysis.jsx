@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, UploadCloud, Cpu, AlertCircle, ArrowLeft, ShieldCheck, Sparkles } from 'lucide-react';
+import { Mic, UploadCloud, Cpu, AlertCircle, ArrowLeft, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
+import ShieldMicLogo from '../components/ui/ShieldMicLogo';
 import AudioRecorder from '../components/audio/AudioRecorder';
 import AudioUploader from '../components/audio/AudioUploader';
 import ContextForm from '../components/analysis/ContextForm';
@@ -140,7 +141,7 @@ export default function VoiceAnalysis({ user, username }) {
           </div>
         </div>
 
-        <Badge variant="cyan" size="md" icon={ShieldCheck}>
+        <Badge variant="cyan" size="md" icon={ShieldMicLogo}>
           Wav2Vec2 Real Inference
         </Badge>
       </div>

@@ -1,12 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, Shield, ShieldQuestion, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, ShieldQuestion, AlertTriangle } from 'lucide-react';
+import ShieldMicLogo from './ui/ShieldMicLogo';
 
 export default function RiskBadge({ riskLevel }) {
   const getBadgeStyle = () => {
     switch(riskLevel) {
       case 'LOW':
-        return { color: 'bg-green-500', icon: <Shield size={24} />, text: 'text-green-400' };
+        return { color: 'bg-green-500', icon: <ShieldMicLogo size={24} />, text: 'text-green-400' };
       case 'MEDIUM':
         return { color: 'bg-yellow-500', icon: <ShieldQuestion size={24} />, text: 'text-yellow-400' };
       case 'HIGH':
@@ -14,7 +15,7 @@ export default function RiskBadge({ riskLevel }) {
       case 'CRITICAL':
         return { color: 'bg-red-500', icon: <ShieldAlert size={24} />, text: 'text-red-400' };
       default:
-        return { color: 'bg-slate-500', icon: <Shield size={24} />, text: 'text-slate-400' };
+        return { color: 'bg-slate-500', icon: <ShieldMicLogo size={24} />, text: 'text-slate-400' };
     }
   };
 

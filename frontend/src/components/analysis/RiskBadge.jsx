@@ -1,6 +1,7 @@
 import React from 'react';
-import { ShieldAlert, ShieldCheck, Shield, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ShieldMicLogo from '../ui/ShieldMicLogo';
 
 export default function RiskBadge({ riskLevel = 'LOW', size = 'lg', showDescription = false }) {
   const level = (riskLevel || 'LOW').toUpperCase();
@@ -10,7 +11,7 @@ export default function RiskBadge({ riskLevel = 'LOW', size = 'lg', showDescript
       label: 'LOW THREAT',
       color: 'text-emerald-400',
       bg: 'bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)]',
-      icon: ShieldCheck,
+      icon: ShieldMicLogo,
       desc: 'Minimal risk indicators detected in voice acoustic features and context.'
     },
     MEDIUM: {

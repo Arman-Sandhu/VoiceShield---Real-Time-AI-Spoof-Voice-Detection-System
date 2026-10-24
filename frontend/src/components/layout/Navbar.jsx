@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
-import { ShieldCheck, Activity, History, Mic, LogOut, User, Pencil, X, Check, Loader2 } from 'lucide-react';
+import { Activity, History, Mic, LogOut, User, Pencil, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '../../services/auth';
 import Button from '../ui/Button';
+import ShieldMicLogo from '../ui/ShieldMicLogo';
 
 export default function Navbar({ user, username, onUpdateUsername }) {
   const location = useLocation();
@@ -60,7 +61,7 @@ export default function Navbar({ user, username, onUpdateUsername }) {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00d4ff]/20 to-[#a855f7]/20 border border-[#00d4ff]/40 flex items-center justify-center text-[#00d4ff] group-hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] transition-all">
-            <ShieldCheck size={22} className="group-hover:scale-110 transition-transform" />
+            <ShieldMicLogo size={22} className="group-hover:scale-110 transition-transform" />
           </div>
           <div>
             <div className="flex items-center gap-2">

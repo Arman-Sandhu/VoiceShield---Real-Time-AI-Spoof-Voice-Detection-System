@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Mic } from 'lucide-react';
+import ShieldMicLogo from './ShieldMicLogo';
 
 export default function TechLoader({ text = 'Initializing VoiceShield Core...' }) {
   return (
@@ -20,22 +20,18 @@ export default function TechLoader({ text = 'Initializing VoiceShield Core...' }
           style={{ animationDelay: '1.6s' }}
         />
 
-        {/* Outer rotating dashed cyber reticle */}
+        {/* Outer rotating dashed cyber reticles */}
         <div className="absolute w-36 h-36 rounded-full border border-dashed border-[#00f5d4]/30 animate-[spin_12s_linear_infinite] pointer-events-none" />
         <div className="absolute w-44 h-44 rounded-full border border-dotted border-[#00d4ff]/20 animate-[spin_20s_linear_infinite_reverse] pointer-events-none" />
 
         {/* Central Shield with nestled Mic Logo (No square bounding box) */}
         <div className="relative z-10 flex items-center justify-center">
-          <Shield
-            className="w-16 h-16 text-[#00f5d4] drop-shadow-[0_0_22px_rgba(0,245,212,0.85)]"
+          <ShieldMicLogo
+            size={64}
+            className="text-[#00f5d4] drop-shadow-[0_0_22px_rgba(0,245,212,0.85)]"
+            micClassName="animate-pulse drop-shadow-[0_0_12px_rgba(0,245,212,0.95)]"
             strokeWidth={1.8}
           />
-          <div className="absolute inset-0 flex items-center justify-center pt-0.5">
-            <Mic
-              className="w-7 h-7 text-white drop-shadow-[0_0_12px_rgba(0,245,212,0.95)] animate-pulse"
-              strokeWidth={2.4}
-            />
-          </div>
         </div>
       </div>
 

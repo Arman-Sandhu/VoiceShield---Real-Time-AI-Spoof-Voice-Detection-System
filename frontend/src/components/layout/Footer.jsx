@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShieldCheck, Cpu, Database, Lock } from 'lucide-react';
+import { Cpu, Database, Lock } from 'lucide-react';
+import ShieldMicLogo from '../ui/ShieldMicLogo';
 
 export default function Footer() {
   return (
@@ -7,7 +8,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-400">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-[#00d4ff]/10 border border-[#00d4ff]/30 flex items-center justify-center text-[#00d4ff]">
-            <ShieldCheck size={18} />
+            <ShieldMicLogo size={18} />
           </div>
           <div>
             <p className="font-display font-semibold text-white">VoiceShield AI</p>

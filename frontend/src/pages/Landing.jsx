@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ShieldCheck,
   Mic,
   Cpu,
   Lock,
@@ -15,6 +14,7 @@ import {
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import ShieldMicLogo from '../components/ui/ShieldMicLogo';
 import Demo3DTiltCard from '../components/home/Demo3DTiltCard';
 
 export default function Landing({ user }) {
@@ -46,7 +46,7 @@ export default function Landing({ user }) {
           className="relative z-10 max-w-4xl flex flex-col items-center"
         >
           <motion.div variants={itemVariants} className="mb-6">
-            <Badge variant="cyan" size="lg" icon={ShieldCheck}>
+            <Badge variant="cyan" size="lg" icon={ShieldMicLogo}>
               Next-Gen Voice Biometric Security
             </Badge>
           </motion.div>
@@ -247,7 +247,7 @@ export default function Landing({ user }) {
               03
             </span>
             <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400 mb-4">
-              <ShieldCheck size={20} />
+              <ShieldMicLogo size={20} />
             </div>
             <h4 className="text-lg font-bold text-white mb-2">Risk Synthesis</h4>
             <p className="text-sm text-slate-400">
@@ -310,7 +310,7 @@ export default function Landing({ user }) {
 
           <Card variant="default" className="flex flex-col">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-6 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-              <ShieldCheck size={24} />
+              <ShieldMicLogo size={24} />
             </div>
             <span className="text-xs font-mono text-emerald-400 uppercase tracking-wider mb-1 block">
               Authentication
