@@ -1,4 +1,4 @@
-# VoiceShield — Real-Time AI Spoof Voice Detection & Caller Risk Assessment System
+# VoiceShield: Real-Time AI Spoof Voice Detection System
 
 > **College Capstone Project & Prototype**  
 > *Acoustic Deepfake Detection & Social Engineering Threat Defense*
