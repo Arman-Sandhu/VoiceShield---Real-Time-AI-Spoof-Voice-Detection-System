@@ -140,7 +140,7 @@ export default function AudioWaveformVisualizer({
 
         const analyser = audioCtx.createAnalyser();
         analyser.fftSize = 512; // 256 frequency bins for accurate voice spectrum resolution
-        analyser.smoothingTimeConstant = 0.72; // Smooth liquid transition without jitter
+        analyser.smoothingTimeConstant = 0.65; // Snappy speech onset and rapid decay to baseline
         analyserRef.current = analyser;
 
         const source = audioCtx.createMediaStreamSource(stream);
@@ -163,7 +163,7 @@ export default function AudioWaveformVisualizer({
           analyser.getByteFrequencyData(freqArray);
           analyser.getByteTimeDomainData(timeArray);
 
-          // 1. Calculate instant RMS loudness from time-domain (accurate volume response)
+          // 1. Calculate instant RMS loudness from time-domain
           let sumSquares = 0;
           for (let j = 0; j < timeArray.length; j++) {
             const normSample = (timeArray[j] - 128) / 128.0;
@@ -171,18 +171,13 @@ export default function AudioWaveformVisualizer({
           }
           const rms = Math.sqrt(sumSquares / timeArray.length);
 
-          // 2. Calculate average voice band spectral energy (bins 1 to 64 ~ 90Hz to 6kHz)
-          let totalVoiceEnergy = 0;
-          const voiceBinLimit = Math.min(bufferLength, 64);
-          for (let k = 1; k < voiceBinLimit; k++) {
-            totalVoiceEnergy += freqArray[k];
-          }
-          const avgVoiceEnergy = totalVoiceEnergy / ((voiceBinLimit - 1) * 255.0);
+          // 2. Strict Speech Activity Gate (VAD)
+          // Ambient room noise and mic self-noise typically have RMS < 0.016.
+          // Real human speech is RMS > 0.02 (whispering is ~0.03, normal speaking is ~0.08 - 0.25).
+          const NOISE_FLOOR_RMS = 0.016;
+          const speechFactor = Math.min(1.0, Math.max(0, (rms - NOISE_FLOOR_RMS) / 0.12));
 
-          // Overall volume factor: low sounds (quiet whispering) vs high sounds (loud speech)
-          const volumeFactor = Math.min(1.0, rms * 4.6 + avgVoiceEnergy * 0.75);
-
-          // Clear background (dark oscilloscope screen)
+          // 3. Clear background (dark oscilloscope screen)
           ctx.fillStyle = '#04090e';
           ctx.fillRect(0, 0, w, h);
           drawGrid(w, h);
@@ -197,12 +192,27 @@ export default function AudioWaveformVisualizer({
           ctx.shadowColor = 'rgba(0, 245, 212, 0.75)';
           ctx.shadowBlur = 8;
 
+          // When there is NO sound (speech below noise gate), render completely flat baseline:
+          // No artificial bumps, no inflated peaks, zero fake curvature.
+          if (speechFactor <= 0) {
+            const baselineHeight = 2.5;
+            ctx.fillStyle = 'rgba(0, 245, 212, 0.55)';
+            for (let i = 0; i < numBars; i++) {
+              const x = gap + i * (barWidth + gap);
+              ctx.fillRect(x, midY - baselineHeight, barWidth, baselineHeight * 2);
+            }
+            ctx.restore();
+            return;
+          }
+
+          // When real sound is detected, compute real acoustic peaks centered in monitor
+          const maxHalfHeight = midY - 12;
+
           for (let i = 0; i < numBars; i++) {
-            // Distance from horizontal center: 0 in the middle, 1.0 at outer left/right edges
             const normDist = centerIdx > 0 ? Math.abs(i - centerIdx) / centerIdx : 0;
 
             // Map distance from center outward to human voice frequency bins:
-            // Center (normDist = 0): Fundamental pitch & deep chest voice (low sound, ~90Hz - 350Hz)
+            // Center (normDist = 0): Fundamental pitch & deep chest voice (~90Hz - 350Hz)
             // Mid (normDist = 0.2 - 0.6): Vowel formants & speech presence (~400Hz - 2500Hz)
             // Outer (normDist = 0.6 - 1.0): High speech clarity, treble & sibilants (~2500Hz - 6500Hz)
             const targetBin = 1 + Math.pow(normDist, 1.25) * 65;
@@ -211,25 +221,29 @@ export default function AudioWaveformVisualizer({
             const frac = targetBin - b0;
             const rawFreq = (freqArray[b0] * (1 - frac) + freqArray[b1] * frac) / 255.0;
 
-            // Acoustic pre-emphasis: boost higher frequency sensitivity so high sounds
-            // (treble, sibilants, whistles) create clear, accurate peaks just like deep sounds
-            const trebleGain = 1.0 + Math.pow(normDist, 0.75) * 1.6;
-            const spectralAmp = Math.min(1.0, rawFreq * trebleGain);
+            // Frequency noise floor: ambient room hiss is typically ~0.10
+            const FREQ_NOISE_FLOOR = 0.10;
+            const cleanFreq = Math.max(0, rawFreq - FREQ_NOISE_FLOOR) / (1 - FREQ_NOISE_FLOOR);
 
-            // Center-focused acoustic window (Tukey/Hann taper):
-            // Keeps peaks centered in the middle and tapers cleanly at outer screen borders
+            // Equalized acoustic pre-emphasis for treble/sibilants
+            const trebleGain = 1.0 + Math.pow(normDist, 0.7) * 1.4;
+            const spectralAmp = Math.min(1.0, cleanFreq * trebleGain);
+
+            // Natural power expansion (produces sharp, authentic acoustic peaks instead of an inflated loaf)
+            const perceivedEnergy = Math.pow(spectralAmp, 1.35);
+
+            // Gentle taper at outer screen borders
             const envelope = Math.cos(normDist * Math.PI * 0.46);
 
-            // Combined dynamic amplitude for current bar
-            const barAmp = (spectralAmp * 0.68 + volumeFactor * 0.32) * envelope;
+            // Combined dynamic amplitude strictly modulated by real speech presence
+            const barAmp = perceivedEnergy * speechFactor * envelope;
 
-            // Max bar height up to midY - 8, with a clean 3px baseline resting height
-            const maxHalfHeight = midY - 8;
-            const barHeight = Math.max(3, barAmp * maxHalfHeight);
+            // Bar height: minimum 2.5px baseline, scaling with genuine voice energy
+            const barHeight = Math.max(2.5, barAmp * maxHalfHeight);
 
             const x = gap + i * (barWidth + gap);
 
-            // Phosphor gradient: cyan caps, electric blue body, emerald green core
+            // Glowing phosphor gradient
             const grad = ctx.createLinearGradient(0, midY - barHeight, 0, midY + barHeight);
             grad.addColorStop(0, '#00f5d4');
             grad.addColorStop(0.25, '#00d4ff');
@@ -238,7 +252,6 @@ export default function AudioWaveformVisualizer({
             grad.addColorStop(1, '#00f5d4');
 
             ctx.fillStyle = grad;
-            // Draw mirrored phosphor spike centered on midY
             ctx.fillRect(x, midY - barHeight, barWidth, barHeight * 2);
           }
 
