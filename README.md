@@ -28,7 +28,7 @@ VoiceShield addresses this vulnerability through a dual-engine architecture:
 - **Microphone Record & Analyze**: Live in-browser audio capture with real-time Web Audio API frequency visualization, duration timer, and browser-native 16-bit PCM WAV encoding at 16,000 Hz.
 - **Audio File Upload**: Drag-and-drop workspace supporting standard audio formats (`.wav`, `.mp3`, `.flac`, `.ogg`) up to 15MB with client-side and server-side validation.
 - **Contextual Threat Scoring**: Separates the ML acoustic synthetic score from call context to guard against social engineering even when voices sound authentic.
-- **Redora Design System**: Futuristic, minimal cyber-security aesthetic featuring deep cosmic navy (`#07080f`), glowing cyan accents (`#00d4ff`), purple highlights (`#a855f7`), and glassmorphism.
+- **Cybersecurity Dark UI System**: Futuristic, minimal cyber-security aesthetic featuring deep cosmic navy (`#07080f`), glowing cyan accents (`#00d4ff`), purple highlights (`#a855f7`), and glassmorphism.
 - **Cryptographic User Isolation**: Firebase Client & Admin SDK integration verifies Bearer ID tokens on every protected endpoint.
 - **Dual-Mode History Vault**: Stores telemetry and analysis history in Supabase PostgreSQL, with automatic, transparent fallback to local SQLite (`voiceshield.db`) if cloud connectivity is unavailable.
 
@@ -46,7 +46,7 @@ VoiceShield addresses this vulnerability through a dual-engine architecture:
 
 ### Frontend
 - **Framework**: React 19 + Vite 8
-- **Styling**: Tailwind CSS v4 (Vanilla CSS variables & Redora design tokens)
+- **Styling**: Tailwind CSS v4 (Vanilla CSS variables & cyber design tokens)
 - **Motion & UI**: Framer Motion, Lucide React, `clsx`, `tailwind-merge`
 - **Audio Processing**: Web Audio API (`AudioContext`, `AnalyserNode`, `ScriptProcessorNode`), custom PCM WAV encoder
 - **Client Auth**: Firebase Client SDK v12

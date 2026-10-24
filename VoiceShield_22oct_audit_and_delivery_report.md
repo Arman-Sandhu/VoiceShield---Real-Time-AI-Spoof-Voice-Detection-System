@@ -6,7 +6,7 @@ VoiceShield has been transformed from an early hackathon-style prototype contain
 1. **Real AI Pretrained ML Inference**: Preloaded `MelodyMachine/Deepfake-audio-detection-V2` (Wav2Vec2 sequence classifier with 94.5M parameters) running actual PyTorch forward passes on 16kHz audio.
 2. **Deterministic Contextual Threat Engine**: Synthesizing the acoustic spoof score with situational call threat indicators (Unknown Caller, Financial/Credential Requests, Psychological Urgency).
 3. **Dual-Mode Data Persistence**: Seamless support for Supabase PostgreSQL with zero-downtime automatic fallback to local SQLite (`voiceshield.db`).
-4. **Complete Redora Redesign**: Cyber-security aesthetic with cosmic navy (`#07080f`), glowing cyan accents (`#00d4ff`), purple highlights (`#a855f7`), Sora display typography, Inter body font, live audio visualizers, and glassmorphic cards across all 6 core pages.
+4. **Complete Modern UI Redesign**: Cyber-security aesthetic with cosmic navy (`#07080f`), glowing cyan accents (`#00d4ff`), purple highlights (`#a855f7`), Sora display typography, Inter body font, live audio visualizers, and glassmorphic cards across all 6 core pages.
 
 ---
 
@@ -19,7 +19,7 @@ VoiceShield has been transformed from an early hackathon-style prototype contain
 | **Audio Recording** | MediaRecorder streamed raw WebM chunks over a WebSocket directly into sequence classification. | Built native browser 16-bit PCM WAV encoder (`src/utils/wavEncoder.js`) producing standard 16kHz RIFF WAV blobs. Connected to HTML5 Web Audio API `AnalyserNode` for live frequency visualization. |
 | **Database** | Supabase host in `.env` (`iikxqzqxovgeqnfnvxmu.supabase.co`) failed DNS lookup (`getaddrinfo failed`). | Implemented dual-engine `history_service.py` with reachability timeout: uses Supabase when online, automatically and safely persists to local SQLite (`voiceshield.db`) when cloud is unreachable. |
 | **Security & Auth** | Backend hardcoded relative paths that failed when executed from project root. | Standardized `app/core/config.py` and `app/core/security.py` using absolute `BASE_DIR` resolution and verified Firebase Admin token validation with user-specific isolation. |
-| **Frontend UI** | Generic Slate-800 dashboard with basic tables and no landing page. | Redesigned entire application following the REDORA design system: Landing, Login/Signup, Dashboard, Studio Workspace, Results, and History Vault. |
+| **Frontend UI** | Generic Slate-800 dashboard with basic tables and no landing page. | Redesigned entire application following a modern cybersecurity design system: Landing, Login/Signup, Dashboard, Studio Workspace, Results, and History Vault. |
 
 ---
 
