@@ -245,7 +245,7 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
           isPlaying={playbackState.isPlaying}
           playbackProgress={playbackState.progress}
           audioRef={playbackState.audioRef}
-          height={125}
+          height={recordedBlob ? 125 : 215}
         />
       </div>
 

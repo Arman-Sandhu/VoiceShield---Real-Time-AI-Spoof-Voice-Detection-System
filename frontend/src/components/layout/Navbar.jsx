@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { ShieldCheck, Activity, History, Mic, LogOut, User, Pencil, X, Check, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -140,95 +141,99 @@ export default function Navbar({ user, username, onUpdateUsername }) {
         </div>
       </div>
 
-      {/* Edit Username Modal */}
-      <AnimatePresence>
-        {isEditingModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md bg-[#0f1117] border border-white/10 rounded-2xl p-6 shadow-2xl relative"
-            >
-              <button
-                type="button"
-                onClick={() => setIsEditingModalOpen(false)}
-                className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
-                title="Close"
-              >
-                <X size={18} />
-              </button>
-
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-mono text-[#00d4ff] uppercase tracking-wider">
-                  USER PROFILE
-                </span>
-              </div>
-
-              <h3 className="text-xl font-display font-bold text-white mb-1.5">
-                Edit User Name / User ID
-              </h3>
-              <p className="text-xs text-slate-400 mb-5">
-                Update your display username. This will be synchronized into the user profile and all your analysis audit records in Supabase.
-              </p>
-
-              <form onSubmit={handleSaveUsername} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase">
-                    Username / Investigator Name
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={editNameInput}
-                      onChange={(e) => setEditNameInput(e.target.value)}
-                      placeholder="e.g. alex_investigator"
-                      className="w-full bg-[#161b27] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
-                      autoFocus
-                      required
-                    />
-                    <User size={16} className="absolute left-3.5 top-3 text-slate-500" />
-                  </div>
-                </div>
-
-                {saveError && (
-                  <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5">
-                    {saveError}
-                  </div>
-                )}
-
-                {saveSuccess && (
-                  <div className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5 flex items-center gap-1.5">
-                    <Check size={14} />
-                    <span>Username updated in user table & analysis history!</span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-end gap-3 pt-2">
-                  <Button
+      {/* Edit Username Modal (Portaled to document.body to center in viewport) */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {isEditingModalOpen && (
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="w-full max-w-md bg-[#0f1117] border border-white/10 rounded-2xl p-6 shadow-2xl relative"
+                >
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="sm"
                     onClick={() => setIsEditingModalOpen(false)}
-                    disabled={isSaving}
+                    className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+                    title="Close"
                   >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="sm"
-                    isLoading={isSaving}
-                    icon={Check}
-                  >
-                    Save Changes
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
+                    <X size={18} />
+                  </button>
+
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-mono text-[#00d4ff] uppercase tracking-wider">
+                      USER PROFILE
+                    </span>
+                  </div>
+
+                  <h3 className="text-xl font-display font-bold text-white mb-1.5">
+                    Edit User Name / User ID
+                  </h3>
+                  <p className="text-xs text-slate-400 mb-5">
+                    Update your display username. This will be synchronized into the user profile and all your analysis audit records in Supabase.
+                  </p>
+
+                  <form onSubmit={handleSaveUsername} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase">
+                        Username / Investigator Name
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={editNameInput}
+                          onChange={(e) => setEditNameInput(e.target.value)}
+                          placeholder="e.g. alex_investigator"
+                          className="w-full bg-[#161b27] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
+                          autoFocus
+                          required
+                        />
+                        <User size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                      </div>
+                    </div>
+
+                    {saveError && (
+                      <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5">
+                        {saveError}
+                      </div>
+                    )}
+
+                    {saveSuccess && (
+                      <div className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5 flex items-center gap-1.5">
+                        <Check size={14} />
+                        <span>Username updated in user table & analysis history!</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-end gap-3 pt-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsEditingModalOpen(false)}
+                        disabled={isSaving}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="sm"
+                        isLoading={isSaving}
+                        icon={Check}
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </header>
   );
 }

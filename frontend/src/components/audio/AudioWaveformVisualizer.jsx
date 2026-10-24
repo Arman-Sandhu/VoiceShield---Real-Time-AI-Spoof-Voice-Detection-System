@@ -139,8 +139,8 @@ export default function AudioWaveformVisualizer({
         audioContextRef.current = audioCtx;
 
         const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.75;
+        analyser.fftSize = 512; // 256 frequency bins for accurate voice spectrum resolution
+        analyser.smoothingTimeConstant = 0.72; // Smooth liquid transition without jitter
         analyserRef.current = analyser;
 
         const source = audioCtx.createMediaStreamSource(stream);
@@ -148,46 +148,97 @@ export default function AudioWaveformVisualizer({
         sourceRef.current = source;
 
         const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        const freqArray = new Uint8Array(bufferLength);
+        const timeArray = new Uint8Array(analyser.fftSize);
 
         const renderRecording = () => {
           animFrameRef.current = requestAnimationFrame(renderRecording);
           const rect = canvas.getBoundingClientRect();
           const w = rect.width;
           const h = height;
+          if (w <= 0 || h <= 0) return;
+
           const midY = h / 2;
 
-          analyser.getByteFrequencyData(dataArray);
+          analyser.getByteFrequencyData(freqArray);
+          analyser.getByteTimeDomainData(timeArray);
+
+          // 1. Calculate instant RMS loudness from time-domain (accurate volume response)
+          let sumSquares = 0;
+          for (let j = 0; j < timeArray.length; j++) {
+            const normSample = (timeArray[j] - 128) / 128.0;
+            sumSquares += normSample * normSample;
+          }
+          const rms = Math.sqrt(sumSquares / timeArray.length);
+
+          // 2. Calculate average voice band spectral energy (bins 1 to 64 ~ 90Hz to 6kHz)
+          let totalVoiceEnergy = 0;
+          const voiceBinLimit = Math.min(bufferLength, 64);
+          for (let k = 1; k < voiceBinLimit; k++) {
+            totalVoiceEnergy += freqArray[k];
+          }
+          const avgVoiceEnergy = totalVoiceEnergy / ((voiceBinLimit - 1) * 255.0);
+
+          // Overall volume factor: low sounds (quiet whispering) vs high sounds (loud speech)
+          const volumeFactor = Math.min(1.0, rms * 4.6 + avgVoiceEnergy * 0.75);
 
           // Clear background (dark oscilloscope screen)
           ctx.fillStyle = '#04090e';
           ctx.fillRect(0, 0, w, h);
           drawGrid(w, h);
 
-          // Draw phosphor bars mirrored across central axis (Image 1 style)
-          const barCount = Math.min(bufferLength, Math.floor(w / 4));
+          // Center-focused symmetric speech monitor
+          const numBars = Math.floor(w / 4);
           const barWidth = 2.2;
-          const gap = (w - barCount * barWidth) / (barCount + 1);
+          const gap = (w - numBars * barWidth) / (numBars + 1);
+          const centerIdx = (numBars - 1) / 2;
 
           ctx.save();
           ctx.shadowColor = 'rgba(0, 245, 212, 0.75)';
           ctx.shadowBlur = 8;
 
-          for (let i = 0; i < barCount; i++) {
-            const v = dataArray[i] / 255.0;
-            const barHeight = Math.max(3, v * (midY - 8));
+          for (let i = 0; i < numBars; i++) {
+            // Distance from horizontal center: 0 in the middle, 1.0 at outer left/right edges
+            const normDist = centerIdx > 0 ? Math.abs(i - centerIdx) / centerIdx : 0;
+
+            // Map distance from center outward to human voice frequency bins:
+            // Center (normDist = 0): Fundamental pitch & deep chest voice (low sound, ~90Hz - 350Hz)
+            // Mid (normDist = 0.2 - 0.6): Vowel formants & speech presence (~400Hz - 2500Hz)
+            // Outer (normDist = 0.6 - 1.0): High speech clarity, treble & sibilants (~2500Hz - 6500Hz)
+            const targetBin = 1 + Math.pow(normDist, 1.25) * 65;
+            const b0 = Math.floor(targetBin);
+            const b1 = Math.min(bufferLength - 1, b0 + 1);
+            const frac = targetBin - b0;
+            const rawFreq = (freqArray[b0] * (1 - frac) + freqArray[b1] * frac) / 255.0;
+
+            // Acoustic pre-emphasis: boost higher frequency sensitivity so high sounds
+            // (treble, sibilants, whistles) create clear, accurate peaks just like deep sounds
+            const trebleGain = 1.0 + Math.pow(normDist, 0.75) * 1.6;
+            const spectralAmp = Math.min(1.0, rawFreq * trebleGain);
+
+            // Center-focused acoustic window (Tukey/Hann taper):
+            // Keeps peaks centered in the middle and tapers cleanly at outer screen borders
+            const envelope = Math.cos(normDist * Math.PI * 0.46);
+
+            // Combined dynamic amplitude for current bar
+            const barAmp = (spectralAmp * 0.68 + volumeFactor * 0.32) * envelope;
+
+            // Max bar height up to midY - 8, with a clean 3px baseline resting height
+            const maxHalfHeight = midY - 8;
+            const barHeight = Math.max(3, barAmp * maxHalfHeight);
+
             const x = gap + i * (barWidth + gap);
 
-            // Glowing cyan to emerald phosphor gradient
+            // Phosphor gradient: cyan caps, electric blue body, emerald green core
             const grad = ctx.createLinearGradient(0, midY - barHeight, 0, midY + barHeight);
             grad.addColorStop(0, '#00f5d4');
-            grad.addColorStop(0.3, '#00d4ff');
+            grad.addColorStop(0.25, '#00d4ff');
             grad.addColorStop(0.5, '#10b981');
-            grad.addColorStop(0.7, '#00d4ff');
+            grad.addColorStop(0.75, '#00d4ff');
             grad.addColorStop(1, '#00f5d4');
 
             ctx.fillStyle = grad;
-            // Draw mirrored spike centered on midY
+            // Draw mirrored phosphor spike centered on midY
             ctx.fillRect(x, midY - barHeight, barWidth, barHeight * 2);
           }
 
@@ -388,11 +439,12 @@ export default function AudioWaveformVisualizer({
         const barWidth = 2.0;
         const gap = (w - numBars * barWidth) / (numBars + 1);
 
+        const ampScale = Math.max(1, height / 125);
         for (let i = 0; i < numBars; i++) {
           const x = gap + i * (barWidth + gap);
           const envelope = Math.sin((i / numBars) * Math.PI);
           const wave = Math.sin(i * 0.12 + phase) * Math.cos(i * 0.05 - phase * 0.5);
-          const barHeight = Math.max(2, (4 + wave * 9 * envelope));
+          const barHeight = Math.max(2.5, (4 + wave * 11 * envelope) * ampScale);
 
           const grad = ctx.createLinearGradient(0, midY - barHeight, 0, midY + barHeight);
           grad.addColorStop(0, 'rgba(0, 245, 212, 0.7)');
@@ -414,10 +466,10 @@ export default function AudioWaveformVisualizer({
       window.removeEventListener('resize', updateSize);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (sourceRef.current) {
-        try { sourceRef.current.disconnect(); } catch (e) {}
+        try { sourceRef.current.disconnect(); } catch {}
       }
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        try { audioContextRef.current.close(); } catch (e) {}
+        try { audioContextRef.current.close(); } catch {}
       }
     };
   }, [isRecording, stream, isPlaying, audioRef, playbackProgress, audioBufferData, height, showGrid]);
