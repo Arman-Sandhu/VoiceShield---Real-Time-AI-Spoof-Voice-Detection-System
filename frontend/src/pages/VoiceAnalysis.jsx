@@ -11,10 +11,11 @@ import AudioUploader from '../components/audio/AudioUploader';
 import ContextForm from '../components/analysis/ContextForm';
 import AnalysisResult from './AnalysisResult';
 
-export default function VoiceAnalysis() {
+export default function VoiceAnalysis({ user, username }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('record'); // 'record' or 'upload'
   const [audioFile, setAudioFile] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
   const [contextFlags, setContextFlags] = useState({
     is_caller_unknown: false,
     is_sensitive_request: false,
@@ -26,13 +27,19 @@ export default function VoiceAnalysis() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const handleAudioReady = (file) => {
+  const handleAudioReady = (file, blobOrUrl) => {
     setAudioFile(file);
+    if (blobOrUrl instanceof Blob) {
+      setAudioBlob(blobOrUrl);
+    } else {
+      setAudioBlob(null);
+    }
     setErrorMessage(null);
   };
 
   const handleAudioReset = () => {
     setAudioFile(null);
+    setAudioBlob(null);
     setErrorMessage(null);
   };
 
@@ -62,10 +69,15 @@ export default function VoiceAnalysis() {
 
     const formData = new FormData();
     formData.append('file', audioFile);
+    formData.append('custom_file_name', audioFile.name);
     formData.append('is_caller_unknown', contextFlags.is_caller_unknown ? 'true' : 'false');
     formData.append('is_sensitive_request', contextFlags.is_sensitive_request ? 'true' : 'false');
     formData.append('urgency_flag', contextFlags.urgency_flag ? 'true' : 'false');
     formData.append('mode', activeTab);
+    const effectiveUsername = username || user?.displayName || '';
+    if (effectiveUsername) {
+      formData.append('username', effectiveUsername);
+    }
 
     try {
       const response = await api.post('/analyze-file', formData, {
@@ -88,6 +100,7 @@ export default function VoiceAnalysis() {
 
   const resetAll = () => {
     setAudioFile(null);
+    setAudioBlob(null);
     setAnalysisResult(null);
     setErrorMessage(null);
     setContextFlags({
@@ -99,11 +112,18 @@ export default function VoiceAnalysis() {
 
   // If analysis completed, render the full Analysis Result view
   if (analysisResult) {
-    return <AnalysisResult result={analysisResult} onReset={resetAll} />;
+    return (
+      <AnalysisResult
+        result={analysisResult}
+        audioFile={audioFile}
+        audioBlob={audioBlob}
+        onReset={resetAll}
+      />
+    );
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-8">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -125,13 +145,14 @@ export default function VoiceAnalysis() {
         </Badge>
       </div>
 
-      {/* Main Workspace Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* Main Workspace Layout - Aligned Grid with Optimized Margins */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         {/* Left Column: Audio Source Tab Selection and Input */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
-          <Card variant="elevated" className="p-6">
-            {/* Input Method Tabs */}
-            <div className="flex rounded-xl bg-[#0f1117] p-1 border border-white/[0.08] mb-6">
+        <div className="lg:col-span-7 flex flex-col">
+          <Card variant="elevated" className="p-6 sm:p-7 flex flex-col justify-between h-full">
+            <div>
+              {/* Input Method Tabs */}
+              <div className="flex rounded-xl bg-[#0f1117] p-1.5 border border-white/[0.08] mb-6">
               <button
                 type="button"
                 onClick={() => {
@@ -177,16 +198,18 @@ export default function VoiceAnalysis() {
                 onReset={handleAudioReset}
               />
             )}
+            </div>
           </Card>
         </div>
 
         {/* Right Column: Context Form and Action */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          <Card variant="default" className="p-6">
-            <ContextForm
-              flags={contextFlags}
-              onChange={setContextFlags}
-            />
+        <div className="lg:col-span-5 flex flex-col">
+          <Card variant="default" className="p-6 sm:p-7 flex flex-col justify-between h-full">
+            <div>
+              <ContextForm
+                flags={contextFlags}
+                onChange={setContextFlags}
+              />
 
             {/* Error Message */}
             {errorMessage && (
@@ -195,6 +218,7 @@ export default function VoiceAnalysis() {
                 <span>{errorMessage}</span>
               </div>
             )}
+            </div>
 
             {/* Action Button & Scanning Visualizer */}
             <div className="mt-6 pt-6 border-t border-white/[0.08]">

@@ -4,19 +4,23 @@ import {
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendEmailVerification
+  sendEmailVerification,
+  updateProfile
 } from 'firebase/auth';
 import { auth, googleProvider } from '../services/auth';
-import { ShieldCheck, Mail, Lock, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
+import api from '../services/api';
+import { ShieldCheck, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
-import Badge from '../components/ui/Badge';
 
-export default function Login() {
+export default function Login({ onLoginSuccess }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
@@ -26,9 +30,17 @@ export default function Login() {
     setError(null);
     setSuccessMsg(null);
 
-    if (isSignUp && password !== confirmPassword) {
-      setError('Passwords do not match. Please verify.');
-      return;
+    const cleanUsername = username.trim();
+
+    if (isSignUp) {
+      if (!cleanUsername) {
+        setError('Please enter a username or user ID.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Passwords do not match. Please verify.');
+        return;
+      }
     }
 
     if (password.length < 6) {
@@ -41,6 +53,15 @@ export default function Login() {
     try {
       if (isSignUp) {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        if (cleanUsername) {
+          try {
+            await updateProfile(userCred.user, { displayName: cleanUsername });
+            await api.post('/user/username', { username: cleanUsername });
+          } catch (syncErr) {
+            console.warn('Initial username sync notice:', syncErr);
+          }
+          if (onLoginSuccess) onLoginSuccess(cleanUsername);
+        }
         try {
           await sendEmailVerification(userCred.user);
           setSuccessMsg('Account created successfully! Verification email sent.');
@@ -49,12 +70,25 @@ export default function Login() {
           setSuccessMsg('Account created! You may now sign in.');
         }
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        if (cleanUsername) {
+          try {
+            await updateProfile(userCred.user, { displayName: cleanUsername });
+            await api.post('/user/username', { username: cleanUsername });
+          } catch (syncErr) {
+            console.warn('Sign-in username update notice:', syncErr);
+          }
+          if (onLoginSuccess) onLoginSuccess(cleanUsername);
+        }
       }
     } catch (err) {
       console.error('Firebase Auth error:', err);
       let userFriendlyMsg = err.message;
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+      if (
+        err.code === 'auth/invalid-credential' ||
+        err.code === 'auth/wrong-password' ||
+        err.code === 'auth/user-not-found'
+      ) {
         userFriendlyMsg = 'Invalid email or password credentials. Please verify and try again.';
       } else if (err.code === 'auth/email-already-in-use') {
         userFriendlyMsg = 'An account with this email address already exists. Please sign in instead.';
@@ -72,7 +106,16 @@ export default function Login() {
     setSuccessMsg(null);
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const cleanUsername = username.trim() || result.user?.displayName || '';
+      if (cleanUsername) {
+        try {
+          await api.post('/user/username', { username: cleanUsername });
+        } catch (syncErr) {
+          console.warn('Google Auth username sync notice:', syncErr);
+        }
+        if (onLoginSuccess) onLoginSuccess(cleanUsername);
+      }
     } catch (err) {
       console.error('Google Auth error:', err);
       if (err.code !== 'auth/popup-closed-by-user') {
@@ -169,6 +212,30 @@ export default function Login() {
 
         {/* Email Password Form */}
         <form onSubmit={handleEmailAuth} className="space-y-4">
+          {/* Username / User ID Input */}
+          <div>
+            <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase">
+              Username / User ID{' '}
+              {!isSignUp && (
+                <span className="text-slate-500 font-sans normal-case text-[11px]">
+                  (optional)
+                </span>
+              )}
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder={isSignUp ? 'e.g. alex_investigator' : 'Enter username / ID'}
+                required={isSignUp}
+                className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
+              />
+              <User size={16} className="absolute left-3.5 top-3 text-slate-500" />
+            </div>
+          </div>
+
+          {/* Email Address */}
           <div>
             <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase">
               Email Address
@@ -186,23 +253,33 @@ export default function Login() {
             </div>
           </div>
 
+          {/* Password with Eye Toggle */}
           <div>
             <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase">
               Password
             </label>
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
+                className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
               />
               <Lock size={16} className="absolute left-3.5 top-3 text-slate-500" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
+          {/* Confirm Password (Sign Up) with Eye Toggle */}
           {isSignUp && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -214,14 +291,22 @@ export default function Login() {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
+                  className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
                 />
                 <Lock size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3.5 top-3 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </motion.div>
           )}
@@ -247,7 +332,7 @@ export default function Login() {
           </span>
         </div>
 
-        {/* Google OAuth Button */}
+        {/* Google OAuth Button with Left-Aligned Logo */}
         <Button
           type="button"
           variant="secondary"
@@ -256,13 +341,27 @@ export default function Login() {
           disabled={loading}
           className="w-full bg-white text-[#07080f] hover:bg-slate-100 hover:text-black font-semibold border-transparent"
         >
-          <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-          </svg>
-          Sign In with Google
+          <div className="flex items-center justify-center gap-3 w-full">
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+              <path
+                fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              />
+            </svg>
+            <span>Sign In with Google</span>
+          </div>
         </Button>
       </Card>
     </div>

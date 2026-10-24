@@ -1,13 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileAudio, Trash2, AlertCircle } from 'lucide-react';
+import { UploadCloud, FileAudio, Trash2, AlertCircle, Scissors, Pencil, Check, X } from 'lucide-react';
 import Button from '../ui/Button';
 import AudioPlayer from './AudioPlayer';
+import AudioCropper from './AudioCropper';
 
 export default function AudioUploader({ onAudioReady, onReset }) {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [customName, setCustomName] = useState('');
   const inputRef = useRef(null);
 
   const supportedExtensions = ['.wav', '.mp3', '.ogg', '.flac'];
@@ -74,10 +78,55 @@ export default function AudioUploader({ onAudioReady, onReset }) {
     }
   };
 
+  const handleCropComplete = (newFile, newBlob, newDuration) => {
+    if (fileUrl) URL.revokeObjectURL(fileUrl);
+    const newUrl = URL.createObjectURL(newBlob);
+    setSelectedFile(newFile);
+    setFileUrl(newUrl);
+    setShowCropper(false);
+    if (onAudioReady) {
+      onAudioReady(newFile, newUrl);
+    }
+  };
+
+  const handleStartRename = () => {
+    if (!selectedFile) return;
+    setCustomName(selectedFile.name);
+    setIsEditingName(true);
+  };
+
+  const handleSaveRename = (e) => {
+    if (e) e.preventDefault();
+    if (!selectedFile) return;
+
+    let trimmed = customName.trim();
+    if (!trimmed) {
+      setIsEditingName(false);
+      return;
+    }
+
+    const dotIndex = selectedFile.name.lastIndexOf('.');
+    const ext = dotIndex !== -1 ? selectedFile.name.substring(dotIndex) : '.wav';
+
+    if (!trimmed.includes('.')) {
+      trimmed += ext;
+    }
+
+    const renamed = new File([selectedFile], trimmed, { type: selectedFile.type });
+    setSelectedFile(renamed);
+    setIsEditingName(false);
+    if (onAudioReady) {
+      onAudioReady(renamed, fileUrl);
+    }
+  };
+
   const removeFile = () => {
     if (fileUrl) URL.revokeObjectURL(fileUrl);
     setSelectedFile(null);
     setFileUrl(null);
+    setShowCropper(false);
+    setIsEditingName(false);
+    setCustomName('');
     setErrorMessage(null);
     if (inputRef.current) inputRef.current.value = '';
     if (onReset) onReset();
@@ -141,33 +190,98 @@ export default function AudioUploader({ onAudioReady, onReset }) {
         /* Preview of Selected File */
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between p-4 rounded-xl bg-[#0f1117] border border-white/[0.08]">
-            <div className="flex items-center gap-3 truncate">
+            <div className="flex items-center gap-3 min-w-0 flex-1 mr-3">
               <div className="w-10 h-10 rounded-lg bg-[#00d4ff]/15 border border-[#00d4ff]/30 flex items-center justify-center text-[#00d4ff] shrink-0">
                 <FileAudio size={20} />
               </div>
-              <div className="truncate">
-                <p className="text-sm font-medium text-white truncate max-w-xs sm:max-w-md">
-                  {selectedFile.name}
-                </p>
+              <div className="min-w-0 flex-1">
+                {isEditingName ? (
+                  <form onSubmit={handleSaveRename} className="flex items-center gap-1.5 py-0.5">
+                    <input
+                      type="text"
+                      value={customName}
+                      onChange={(e) => setCustomName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') setIsEditingName(false);
+                      }}
+                      className="bg-[#161b27] border border-[#00d4ff]/60 rounded-lg px-2.5 py-1 text-xs text-white font-mono outline-none focus:ring-1 focus:ring-[#00d4ff] w-full max-w-xs"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      className="p-1 rounded bg-[#00d4ff]/20 text-[#00d4ff] hover:bg-[#00d4ff]/30 transition-colors"
+                      title="Save name"
+                    >
+                      <Check size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingName(false)}
+                      className="p-1 rounded bg-white/5 text-slate-400 hover:text-white transition-colors"
+                      title="Cancel"
+                    >
+                      <X size={14} />
+                    </button>
+                  </form>
+                ) : (
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="text-sm font-medium text-white truncate max-w-xs sm:max-w-md" title={selectedFile.name}>
+                      {selectedFile.name}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleStartRename}
+                      className="p-1 rounded-md text-slate-400 hover:text-[#00d4ff] hover:bg-white/5 transition-colors shrink-0"
+                      title="Rename audio file"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                  </div>
+                )}
                 <p className="text-xs font-mono text-slate-400">
                   {formatFileSize(selectedFile.size)} &bull; {selectedFile.type || 'audio file'}
                 </p>
               </div>
             </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={removeFile}
-              icon={Trash2}
-              className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
-            >
-              Remove
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCropper(!showCropper)}
+                icon={Scissors}
+                title="Crop or trim audio selection"
+              >
+                {showCropper ? 'Close Cropper' : 'Crop Audio'}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={removeFile}
+                icon={Trash2}
+                className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+              >
+                Remove
+              </Button>
+            </div>
           </div>
 
-          {fileUrl && (
-            <AudioPlayer audioUrl={fileUrl} title={selectedFile.name} />
+          {showCropper ? (
+            <AudioCropper
+              audioFile={selectedFile}
+              onCropComplete={handleCropComplete}
+              onCancel={() => setShowCropper(false)}
+            />
+          ) : (
+            fileUrl && (
+              <AudioPlayer
+                audioUrl={fileUrl}
+                audioFile={selectedFile}
+                fileName={selectedFile.name}
+                title={selectedFile.name}
+              />
+            )
           )}
         </div>
       )}

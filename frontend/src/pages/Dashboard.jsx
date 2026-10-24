@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   Activity,
   Mic,
@@ -18,7 +17,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import RiskBadge from '../components/analysis/RiskBadge';
 
-export default function Dashboard({ user }) {
+export default function Dashboard({ user, username }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -56,6 +55,8 @@ export default function Dashboard({ user }) {
     (h) => h.prediction === 'HUMAN_SPEECH'
   ).length;
 
+  const displayName = username || user?.displayName || user?.email?.split('@')[0] || 'Investigator';
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-10">
       {/* Welcome Banner */}
@@ -70,23 +71,29 @@ export default function Dashboard({ user }) {
             Security Intelligence Dashboard
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Welcome back, <span className="text-white font-medium">{user?.email || 'Investigator'}</span>. Review voice verification logs and threat telemetry.
+            Welcome back, <span className="text-white font-medium">{displayName}</span>. Review voice verification logs and threat telemetry.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Button
             variant="secondary"
-            size="sm"
+            size="md"
             onClick={handleRefresh}
             isLoading={refreshing}
             icon={RefreshCw}
+            className="h-11 px-4 text-sm font-semibold flex items-center justify-center gap-2"
           >
             Refresh
           </Button>
 
           <Link to="/analyze">
-            <Button variant="primary" size="md" icon={Mic}>
+            <Button
+              variant="primary"
+              size="md"
+              icon={Mic}
+              className="h-11 px-5 text-sm font-semibold flex items-center justify-center gap-2"
+            >
               Start New Analysis
             </Button>
           </Link>
@@ -213,6 +220,7 @@ export default function Dashboard({ user }) {
               <thead>
                 <tr className="border-b border-white/[0.08] bg-white/[0.02] text-xs font-mono text-slate-400 uppercase tracking-wider">
                   <th className="py-4 px-6">Event ID</th>
+                  <th className="py-4 px-6">Audio File</th>
                   <th className="py-4 px-6">Type</th>
                   <th className="py-4 px-6">Classification</th>
                   <th className="py-4 px-6">Spoof Score</th>
@@ -225,6 +233,9 @@ export default function Dashboard({ user }) {
                   <tr key={item.event_id || item.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="py-4 px-6 font-mono text-[#00d4ff] font-medium">
                       {item.event_id}
+                    </td>
+                    <td className="py-4 px-6 text-slate-300 font-mono text-xs truncate max-w-[150px]" title={item.file_name}>
+                      {item.file_name || `${item.event_id}.wav`}
                     </td>
                     <td className="py-4 px-6 text-slate-300 capitalize text-xs">
                       {item.mode || 'Upload'}

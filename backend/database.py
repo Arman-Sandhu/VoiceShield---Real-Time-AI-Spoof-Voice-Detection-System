@@ -13,16 +13,26 @@ else:
     supabase = None
     print("Warning: SUPABASE_URL or SUPABASE_SERVICE_KEY not set. Database operations will fail.")
 
-def init_db():
-    # Database initialization is now handled directly in Supabase (running the schema SQL)
-    pass
+def ensure_user(user_id, email=None):
+    if not supabase:
+        return None
+    try:
+        res = supabase.table('users').select('*').eq('user_id', user_id).execute()
+        if not res.data or len(res.data) == 0:
+            supabase.table('users').insert({
+                "user_id": user_id,
+                "email": email or f"{user_id}@voiceshield.internal"
+            }).execute()
+    except Exception as e:
+        print(f"Error ensuring user in Supabase: {e}")
 
-def log_event(event_id, user_id, mode, duration, voice_score, language, context_risk, final_risk):
+def log_event(event_id, user_id, mode, duration, voice_score, language, context_risk, final_risk, email=None):
     if not supabase:
         print("Error: Supabase client not initialized.")
         return
         
     try:
+        ensure_user(user_id, email)
         data, count = supabase.table('analysis_history').insert({
             "event_id": event_id,
             "user_id": user_id,

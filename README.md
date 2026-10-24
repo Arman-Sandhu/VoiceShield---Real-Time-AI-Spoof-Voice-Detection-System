@@ -188,6 +188,8 @@ CREATE TABLE IF NOT EXISTS public.analysis_history (
     context_risk JSONB,
     final_risk TEXT,
     risk_explanation TEXT,
+    file_name TEXT DEFAULT '',
+    is_flagged BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -196,7 +198,7 @@ CREATE INDEX IF NOT EXISTS idx_analysis_history_created_at ON public.analysis_hi
 ```
 
 ### Local SQLite Database
-If Supabase is unreachable or unconfigured, the backend automatically initializes and manages `backend/voiceshield.db`. No manual setup required.
+If Supabase is unreachable or unconfigured, the backend automatically initializes, migrates, and manages `backend/voiceshield.db`. No manual setup required.
 
 ---
 
@@ -206,9 +208,10 @@ If Supabase is unreachable or unconfigured, the backend automatically initialize
 |---|---|---|---|
 | `GET` | `/health` | Server operational health & database mode | No |
 | `GET` | `/model-status` | ML Model loading status & architecture metadata | No |
-| `POST` | `/analyze-file` | Accepts audio + context flags, executes neural inference | **Yes (Firebase Bearer)** |
-| `GET` | `/analysis-history` | Fetches authenticated user's analysis history | **Yes (Firebase Bearer)** |
+| `POST` | `/analyze-file` | Accepts audio + context flags, executes neural inference, saves original file name | **Yes (Firebase Bearer)** |
+| `GET` | `/analysis-history` | Fetches authenticated user's analysis history with file names & flag status | **Yes (Firebase Bearer)** |
 | `GET` | `/analysis/{id}` | Fetches detailed analysis record by Event ID | **Yes (Firebase Bearer)** |
+| `PATCH` | `/analysis/{id}/flag` | Toggles user dispute / inaccurate analysis flag | **Yes (Firebase Bearer)** |
 | `DELETE` | `/analysis/{id}` | Deletes user's own analysis record | **Yes (Firebase Bearer)** |
 
 ---

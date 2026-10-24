@@ -1,6 +1,7 @@
 import uuid
 import logging
 from datetime import datetime, timezone
+from typing import Optional
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status
 
 from app.core.security import verify_token
@@ -17,10 +18,12 @@ router = APIRouter(tags=["Voice Analysis"])
 @router.post("/analyze-file", response_model=AnalysisResultResponse)
 async def analyze_file(
     file: UploadFile = File(..., description="Audio file in WAV, MP3, FLAC, or OGG format"),
+    custom_file_name: Optional[str] = Form(None, description="Optional custom display file name"),
     is_caller_unknown: bool = Form(False, description="Whether caller is unverified"),
     is_sensitive_request: bool = Form(False, description="Whether sensitive info or money was requested"),
     urgency_flag: bool = Form(False, description="Whether urgency/pressure was applied"),
     mode: str = Form("upload", description="'upload' or 'record'"),
+    username: Optional[str] = Form(None, description="Optional username of investigator/user"),
     user: dict = Depends(verify_token)
 ):
     """
@@ -104,6 +107,12 @@ async def analyze_file(
         "urgency_flag": urgency_flag
     }
 
+    effective_file_name = (
+        custom_file_name.strip()
+        if custom_file_name and custom_file_name.strip()
+        else (file.filename or "")
+    ).strip() or "VoiceShield_Audio.wav"
+
     try:
         history_service.save_analysis(
             event_id=event_id,
@@ -116,7 +125,11 @@ async def analyze_file(
             prediction=prediction,
             context_risk=context_flags,
             final_risk=final_risk,
-            risk_explanation=risk_explanation
+            risk_explanation=risk_explanation,
+            file_name=effective_file_name,
+            username=username or user.get("name"),
+            user_email=user.get("email"),
+            is_flagged=False
         )
     except Exception as db_err:
         logger.error(f"Failed to record analysis to database: {db_err}")
@@ -135,5 +148,7 @@ async def analyze_file(
         final_risk=final_risk,
         risk_explanation=risk_explanation,
         timestamp=timestamp_iso,
+        file_name=effective_file_name,
+        is_flagged=False,
         status="success"
     )

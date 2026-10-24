@@ -1,17 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Square, Trash2, CheckCircle2, AlertCircle, Download } from 'lucide-react';
+import { Mic, Square, Trash2, CheckCircle2, AlertCircle, Download, Scissors, Pencil, Check, X } from 'lucide-react';
 import Button from '../ui/Button';
 import AudioWaveformVisualizer from './AudioWaveformVisualizer';
 import AudioPlayer from './AudioPlayer';
+import AudioCropper from './AudioCropper';
 import { encodeWAV } from '../../utils/wavEncoder';
 
 export default function AudioRecorder({ onAudioReady, onReset }) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordedBlob, setRecordedBlob] = useState(null);
+  const [recordedFile, setRecordedFile] = useState(null);
   const [recordedFileName, setRecordedFileName] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [showCropper, setShowCropper] = useState(false);
   const [audioStream, setAudioStream] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [playbackState, setPlaybackState] = useState({
+    isPlaying: false,
+    progress: 0,
+    audioRef: null
+  });
 
   const timerIntervalRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -37,6 +47,7 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
     setRecordedBlob(null);
     setRecordedFileName('');
     setRecordingTime(0);
+    setPlaybackState({ isPlaying: false, progress: 0, audioRef: null });
     recordedSamplesRef.current = [];
 
     try {
@@ -130,10 +141,22 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
     const wavFile = new File([wavBlob], fileName, { type: 'audio/wav' });
 
     setRecordedBlob(wavBlob);
+    setRecordedFile(wavFile);
     setAudioStream(null);
 
     if (onAudioReady) {
       onAudioReady(wavFile, wavBlob);
+    }
+  };
+
+  const handleCropComplete = (newFile, newBlob) => {
+    setRecordedFile(newFile);
+    setRecordedBlob(newBlob);
+    setRecordedFileName(newFile.name);
+    setPlaybackState({ isPlaying: false, progress: 0, audioRef: null });
+    setShowCropper(false);
+    if (onAudioReady) {
+      onAudioReady(newFile, newBlob);
     }
   };
 
@@ -152,11 +175,43 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
     }, 150);
   };
 
+  const handleStartRename = () => {
+    if (!recordedFileName) return;
+    setCustomName(recordedFileName);
+    setIsEditingName(true);
+  };
+
+  const handleSaveRename = (e) => {
+    if (e) e.preventDefault();
+    let trimmed = customName.trim();
+    if (!trimmed) {
+      setIsEditingName(false);
+      return;
+    }
+    if (!trimmed.toLowerCase().endsWith('.wav')) {
+      trimmed += '.wav';
+    }
+    setRecordedFileName(trimmed);
+    setIsEditingName(false);
+    if (recordedBlob) {
+      const newFile = new File([recordedBlob], trimmed, { type: 'audio/wav' });
+      setRecordedFile(newFile);
+      if (onAudioReady) {
+        onAudioReady(newFile, recordedBlob);
+      }
+    }
+  };
+
   const discardRecording = () => {
     setRecordedBlob(null);
+    setRecordedFile(null);
     setRecordedFileName('');
+    setIsEditingName(false);
+    setCustomName('');
+    setShowCropper(false);
     setRecordingTime(0);
     setErrorMessage(null);
+    setPlaybackState({ isPlaying: false, progress: 0, audioRef: null });
     recordedSamplesRef.current = [];
     if (onReset) onReset();
   };
@@ -186,7 +241,11 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
         <AudioWaveformVisualizer
           stream={audioStream}
           isRecording={isRecording}
-          height={110}
+          audioBlob={recordedBlob}
+          isPlaying={playbackState.isPlaying}
+          playbackProgress={playbackState.progress}
+          audioRef={playbackState.audioRef}
+          height={125}
         />
       </div>
 
@@ -235,35 +294,108 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
       ) : (
         /* Preview Player and Actions */
         <div className="flex flex-col gap-4">
-          <AudioPlayer audioBlob={recordedBlob} title={recordedFileName || "Microphone Recording"} />
+          {showCropper ? (
+            <AudioCropper
+              audioFile={recordedFile}
+              audioBlob={recordedBlob}
+              onCropComplete={handleCropComplete}
+              onCancel={() => setShowCropper(false)}
+            />
+          ) : (
+            <>
+              <AudioPlayer
+                audioBlob={recordedBlob}
+                fileName={recordedFileName || "Microphone Recording.wav"}
+                showWaveform={false}
+                onPlaybackChange={setPlaybackState}
+              />
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
-              <CheckCircle2 size={16} />
-              <span className="truncate max-w-xs">{recordedFileName || 'Voice captured & ready for AI verification'}</span>
-            </div>
+              {/* 3 Action Buttons aligned in one line */}
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-3 w-full">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCropper(true)}
+                  icon={Scissors}
+                  className="w-full justify-center text-xs"
+                  title="Crop or trim audio selection"
+                >
+                  Crop Audio
+                </Button>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={downloadRecording}
-                icon={Download}
-                title="Download recorded WAV file to device"
-              >
-                Download WAV
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={downloadRecording}
+                  icon={Download}
+                  className="w-full justify-center text-xs"
+                  title="Download recorded WAV file to device"
+                >
+                  Download WAV
+                </Button>
 
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={discardRecording}
-                icon={Trash2}
-              >
-                Re-record
-              </Button>
-            </div>
-          </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={discardRecording}
+                  icon={Trash2}
+                  className="w-full justify-center text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                >
+                  Re-record
+                </Button>
+              </div>
+
+              {/* Green status line placed under the 3 buttons with rename capability */}
+              <div className="flex items-center justify-between gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-2 rounded-xl">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <CheckCircle2 size={15} className="shrink-0 text-emerald-400" />
+                  {isEditingName ? (
+                    <form onSubmit={handleSaveRename} className="flex items-center gap-1.5 w-full">
+                      <input
+                        type="text"
+                        value={customName}
+                        onChange={(e) => setCustomName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') setIsEditingName(false);
+                        }}
+                        className="bg-[#161b27] border border-emerald-500/50 rounded-lg px-2 py-0.5 text-xs text-white font-mono outline-none focus:ring-1 focus:ring-emerald-400 w-full max-w-xs"
+                        autoFocus
+                      />
+                      <button
+                        type="submit"
+                        className="p-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-colors"
+                        title="Save name"
+                      >
+                        <Check size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingName(false)}
+                        className="p-1 rounded bg-white/5 text-slate-400 hover:text-white transition-colors"
+                        title="Cancel"
+                      >
+                        <X size={13} />
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="truncate">{recordedFileName || 'Voice captured & ready for AI verification'}</span>
+                      {recordedFileName && (
+                        <button
+                          type="button"
+                          onClick={handleStartRename}
+                          className="p-1 rounded text-emerald-400/70 hover:text-emerald-300 hover:bg-emerald-500/20 transition-colors shrink-0"
+                          title="Rename recorded file"
+                        >
+                          <Pencil size={12} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

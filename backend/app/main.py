@@ -22,6 +22,15 @@ async def lifespan(app: FastAPI):
         logger.info(f"Model engine ready: {status['model_name']} on {status['device']}")
     else:
         logger.warning(f"Model loading alert: {status['error']}")
+
+    # Non-blocking sync of registered Firebase users into Supabase user subspace
+    try:
+        import asyncio
+        from sync_firebase_users import sync_firebase_users
+        asyncio.create_task(asyncio.to_thread(sync_firebase_users, False))
+    except Exception as sync_init_err:
+        logger.debug(f"Firebase sync background task startup notice: {sync_init_err}")
+
     yield
     # Shutdown
     logger.info("VoiceShield API shutting down.")

@@ -36,6 +36,8 @@ class AnalysisResultResponse(BaseModel):
     final_risk: str = Field(description="LOW | MEDIUM | HIGH | CRITICAL")
     risk_explanation: str
     timestamp: str
+    file_name: Optional[str] = None
+    is_flagged: bool = False
     status: str = "success"
 
 class AnalysisHistoryItem(BaseModel):
@@ -51,4 +53,30 @@ class AnalysisHistoryItem(BaseModel):
     context_risk: Optional[Dict[str, Any]] = None
     final_risk: Optional[str] = None
     risk_explanation: Optional[str] = None
+    file_name: Optional[str] = None
+    username: Optional[str] = None
+    user_email: Optional[str] = None
+    is_flagged: bool = False
     created_at: str
+
+class FlagToggleResponse(BaseModel):
+    event_id: str
+    is_flagged: bool
+    message: str = "Flag status updated successfully"
+
+class RenameAnalysisRequest(BaseModel):
+    file_name: str = Field(..., min_length=1, max_length=255, description="New file name for the audio analysis record")
+
+class RenameAnalysisResponse(BaseModel):
+    event_id: str
+    file_name: str
+    message: str = "File name updated successfully."
+
+class UpdateUsernameRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=100, description="New display username")
+
+class UpdateUsernameResponse(BaseModel):
+    user_id: str
+    username: str
+    message: str = "Username updated successfully."
+

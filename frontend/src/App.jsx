@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { auth } from './services/auth';
+import api from './services/api';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -13,15 +14,52 @@ import History from './pages/History';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const fetchUserProfile = async (currentUser) => {
+    if (!currentUser) {
+      setUser(null);
+      setUsername('');
+      setLoading(false);
+      return;
+    }
+    setUser(currentUser);
+    let resolvedName = currentUser.displayName || '';
+    try {
+      const res = await api.get('/user/profile');
+      if (res.data?.username && res.data.username.trim()) {
+        resolvedName = res.data.username.trim();
+      }
+    } catch (err) {
+      console.warn('Could not fetch user profile from backend:', err);
+    }
+    setUsername(resolvedName);
+    setLoading(false);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+      fetchUserProfile(currentUser);
     });
     return () => unsubscribe();
   }, []);
+
+  const handleUpdateUsername = async (newUsername) => {
+    const clean = (newUsername || '').trim();
+    if (!clean) return;
+    try {
+      await api.post('/user/username', { username: clean });
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { displayName: clean });
+      }
+      setUsername(clean);
+      return clean;
+    } catch (err) {
+      console.error('Failed to update username:', err);
+      throw err;
+    }
+  };
 
   if (loading) {
     return (
@@ -38,7 +76,7 @@ function App() {
     <Router>
       <div className="min-h-screen bg-[#07080f] text-slate-100 flex flex-col relative selection:bg-[#00d4ff]/30 selection:text-white ambient-gradient">
         {/* Navigation */}
-        <Navbar user={user} />
+        <Navbar user={user} username={username} onUpdateUsername={handleUpdateUsername} />
 
         {/* Main Content Area */}
         <main className="flex-1 w-full flex flex-col">
@@ -49,23 +87,23 @@ function App() {
             {/* Authentication */}
             <Route
               path="/login"
-              element={!user ? <Login /> : <Navigate to="/dashboard" replace />}
+              element={!user ? <Login onLoginSuccess={(name) => { if (name) setUsername(name); }} /> : <Navigate to="/dashboard" replace />}
             />
 
             {/* Protected Workspace Pages */}
             <Route
               path="/dashboard"
-              element={user ? <Dashboard user={user} /> : <Navigate to="/login" replace />}
+              element={user ? <Dashboard user={user} username={username} /> : <Navigate to="/login" replace />}
             />
 
             <Route
               path="/analyze"
-              element={user ? <VoiceAnalysis user={user} /> : <Navigate to="/login" replace />}
+              element={user ? <VoiceAnalysis user={user} username={username} /> : <Navigate to="/login" replace />}
             />
 
             <Route
               path="/history"
-              element={user ? <History user={user} /> : <Navigate to="/login" replace />}
+              element={user ? <History user={user} username={username} /> : <Navigate to="/login" replace />}
             />
 
             {/* Fallback */}

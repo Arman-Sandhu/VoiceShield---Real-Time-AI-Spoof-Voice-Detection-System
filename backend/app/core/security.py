@@ -63,9 +63,12 @@ def verify_token(credentials_header: Optional[HTTPAuthorizationCredentials] = Se
                 detail="Invalid token: missing UID."
             )
 
+        name = decoded_token.get("name") or decoded_token.get("display_name")
+
         return {
             "uid": uid,
             "email": email,
+            "name": name,
             "email_verified": email_verified,
             "decoded": decoded_token
         }
