@@ -24,29 +24,17 @@ export default function TechLoader({ text = 'Initializing VoiceShield Core...' }
         <div className="absolute w-36 h-36 rounded-full border border-dashed border-[#00f5d4]/30 animate-[spin_12s_linear_infinite] pointer-events-none" />
         <div className="absolute w-44 h-44 rounded-full border border-dotted border-[#00d4ff]/20 animate-[spin_20s_linear_infinite_reverse] pointer-events-none" />
 
-        {/* Central glowing Shield Badge */}
-        <div className="relative z-10 w-24 h-24 rounded-2xl bg-[#070e17]/90 backdrop-blur-xl border border-[#00f5d4]/50 flex items-center justify-center shadow-[0_0_35px_rgba(0,245,212,0.4),inset_0_0_20px_rgba(0,245,212,0.15)] group">
-          {/* Subtle corner tech crosshairs */}
-          <span className="absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2 border-[#00f5d4]" />
-          <span className="absolute -top-1 -right-1 w-2 h-2 border-t-2 border-r-2 border-[#00f5d4]" />
-          <span className="absolute -bottom-1 -left-1 w-2 h-2 border-b-2 border-l-2 border-[#00f5d4]" />
-          <span className="absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2 border-[#00f5d4]" />
-
-          {/* Shield Logo with nestled Mic Logo */}
-          <div className="relative flex items-center justify-center">
-            {/* Outer glowing Shield */}
-            <Shield
-              className="w-14 h-14 text-[#00f5d4] drop-shadow-[0_0_15px_rgba(0,245,212,0.7)]"
-              strokeWidth={1.8}
+        {/* Central Shield with nestled Mic Logo (No square bounding box) */}
+        <div className="relative z-10 flex items-center justify-center">
+          <Shield
+            className="w-16 h-16 text-[#00f5d4] drop-shadow-[0_0_22px_rgba(0,245,212,0.85)]"
+            strokeWidth={1.8}
+          />
+          <div className="absolute inset-0 flex items-center justify-center pt-0.5">
+            <Mic
+              className="w-7 h-7 text-white drop-shadow-[0_0_12px_rgba(0,245,212,0.95)] animate-pulse"
+              strokeWidth={2.4}
             />
-
-            {/* Inner glowing Microphone */}
-            <div className="absolute inset-0 flex items-center justify-center pt-0.5">
-              <Mic
-                className="w-6 h-6 text-white drop-shadow-[0_0_10px_rgba(0,245,212,0.9)] animate-pulse"
-                strokeWidth={2.4}
-              />
-            </div>
           </div>
         </div>
       </div>
@@ -64,10 +52,6 @@ export default function TechLoader({ text = 'Initializing VoiceShield Core...' }
         <div className="w-52 h-1 bg-slate-800/80 rounded-full relative overflow-hidden border border-white/5 shadow-inner">
           <div className="h-full w-24 bg-gradient-to-r from-transparent via-[#00f5d4] to-transparent animate-cyber-scan" />
         </div>
-
-        <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase mt-1">
-          Acoustic Sensing Matrix &bull; Neural Defense Active
-        </span>
       </div>
     </div>
   );
