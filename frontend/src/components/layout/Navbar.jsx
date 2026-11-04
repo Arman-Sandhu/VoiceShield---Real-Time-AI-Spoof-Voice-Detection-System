@@ -235,6 +235,38 @@ export default function Navbar({ user, username, onUpdateUsername }) {
           </AnimatePresence>,
           document.body
         )}
+
+      {/* Android Mobile Bottom Navigation Bar (Visible on mobile viewports) */}
+      {user && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#07080f]/95 backdrop-blur-xl border-t border-white/10 px-3 py-2 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            const isActive = location.pathname === link.path;
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all ${
+                  isActive
+                    ? 'text-[#00d4ff] font-bold scale-105'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <div
+                  className={`p-1.5 rounded-lg transition-all ${
+                    isActive
+                      ? 'bg-[#00d4ff]/20 text-[#00d4ff] shadow-[0_0_12px_rgba(0,212,255,0.4)]'
+                      : 'bg-white/5'
+                  }`}
+                >
+                  <Icon size={18} />
+                </div>
+                <span className="text-[10px] font-mono tracking-wider">{link.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </header>
   );
 }

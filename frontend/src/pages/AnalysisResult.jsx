@@ -9,6 +9,7 @@ import {
   Clock,
   Cpu,
   Info,
+  Activity,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -337,6 +338,24 @@ export default function AnalysisResult({
                   </div>
                 </div>
               </div>
+
+              {/* Acoustic Biometric Indicators */}
+              {result.biometric_indicators && result.biometric_indicators.length > 0 && (
+                <div className="mt-5">
+                  <h5 className="text-xs font-mono uppercase text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
+                    <Activity size={14} className="text-[#a855f7]" />
+                    Acoustic Biometric Profiling
+                  </h5>
+                  <div className="space-y-1.5">
+                    {result.biometric_indicators.map((ind, i) => (
+                      <div key={i} className="flex items-center gap-2 p-2.5 rounded-lg bg-[#a855f7]/10 border border-[#a855f7]/20 text-[11px] font-mono text-purple-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#a855f7] shrink-0" />
+                        <span>{ind}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Bottom Section: Recommended Safety Actions */}

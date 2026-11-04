@@ -24,7 +24,7 @@ export default function Demo3DTiltCard({ user }) {
   // 3D Tilt Mouse tracking state
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
-  const [glarePos, setGlarePos] = useState({ x: 50, y: 50, opacity: 0 });
+  const [glarePos, setGlarePos] = useState({ x: 50, y: 50 });
   const [isHovered, setIsHovered] = useState(false);
 
   // Demo Walkthrough Step State
@@ -63,8 +63,7 @@ export default function Demo3DTiltCard({ user }) {
     // Glare coordinates (in percent)
     setGlarePos({
       x: (mouseX / rect.width) * 100,
-      y: (mouseY / rect.height) * 100,
-      opacity: 0.18
+      y: (mouseY / rect.height) * 100
     });
   };
 
@@ -76,7 +75,6 @@ export default function Demo3DTiltCard({ user }) {
     setIsHovered(false);
     setRotateX(0);
     setRotateY(0);
-    setGlarePos((prev) => ({ ...prev, opacity: 0 }));
   };
 
   const steps = [
@@ -127,13 +125,14 @@ export default function Demo3DTiltCard({ user }) {
             ? 'transform 0.12s cubic-bezier(0.2, 0, 0.2, 1)'
             : 'transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)'
         }}
-        className="relative rounded-3xl p-1 bg-gradient-to-br from-[#00d4ff]/40 via-white/[0.08] to-[#a855f7]/40 shadow-[0_25px_60px_-15px_rgba(0,212,255,0.25)] cursor-pointer group"
+        className="relative rounded-3xl p-1 bg-gradient-to-br from-[#00d4ff]/35 via-[#00d4ff]/10 to-[#a855f7]/35 shadow-[0_25px_60px_-15px_rgba(0,212,255,0.2)] cursor-pointer group"
       >
-        {/* Dynamic Specular Light Glare Overlay */}
+        {/* Dynamic Specular Holographic Glare Overlay (Subtle Cyber Sheen, No Harsh White Wash) */}
         <div
-          className="absolute inset-0 rounded-3xl pointer-events-none transition-opacity duration-300 z-30"
+          className="absolute inset-0 rounded-3xl pointer-events-none transition-opacity duration-300 z-10"
           style={{
-            background: `radial-gradient(circle 420px at ${glarePos.x}% ${glarePos.y}%, rgba(255,255,255,${glarePos.opacity}), transparent 80%)`
+            opacity: isHovered ? 1 : 0,
+            background: `radial-gradient(circle 380px at ${glarePos.x}% ${glarePos.y}%, rgba(0, 212, 255, 0.08), rgba(168, 85, 247, 0.04) 45%, transparent 70%)`
           }}
         />
 
@@ -203,8 +202,8 @@ export default function Demo3DTiltCard({ user }) {
                   }}
                   className={`flex flex-col items-start p-3 sm:p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-white/[0.08] border-[#00d4ff]/60 shadow-[0_0_20px_rgba(0,212,255,0.25)] scale-[1.02]'
-                      : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] text-slate-400'
+                      ? 'bg-[#00d4ff]/10 border-[#00d4ff]/60 shadow-[0_0_20px_rgba(0,212,255,0.2)] scale-[1.02]'
+                      : 'bg-white/[0.02] border-white/[0.06] hover:bg-cyan-500/5 hover:border-cyan-500/20 text-slate-400'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full mb-1">

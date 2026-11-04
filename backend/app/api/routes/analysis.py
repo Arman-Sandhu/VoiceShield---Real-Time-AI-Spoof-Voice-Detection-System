@@ -9,7 +9,7 @@ from app.services.audio_service import process_audio, AudioProcessingError
 from app.services.model_service import model_service
 from app.services.risk_service import assess_contextual_risk
 from app.services.history_service import history_service
-from app.schemas.analysis import AnalysisResultResponse
+from app.schemas.analysis import AnalysisResultResponse, LiveCallChunkResponse
 
 logger = logging.getLogger("voiceshield.analysis_route")
 
@@ -22,7 +22,7 @@ async def analyze_file(
     is_caller_unknown: bool = Form(False, description="Whether caller is unverified"),
     is_sensitive_request: bool = Form(False, description="Whether sensitive info or money was requested"),
     urgency_flag: bool = Form(False, description="Whether urgency/pressure was applied"),
-    mode: str = Form("upload", description="'upload' or 'record'"),
+    mode: str = Form("upload", description="'upload', 'record', or 'live_call'"),
     username: Optional[str] = Form(None, description="Optional username of investigator/user"),
     user: dict = Depends(verify_token)
 ):
@@ -36,6 +36,7 @@ async def analyze_file(
             detail="No audio file provided in request."
         )
 
+    is_live = (mode == "live_call")
     logger.info(f"Received analysis request from user {user['uid']} for file '{file.filename}', mode='{mode}'")
 
     # 1. Read file bytes
@@ -64,12 +65,13 @@ async def analyze_file(
             detail="Unexpected error occurred while decoding audio."
         )
 
-    # 3. Real Pretrained ML Model Inference
+    # 3. Real Pretrained ML Model Inference (Calibrated)
     try:
         model_result = model_service.predict(
             audio_data=audio_data,
             duration_seconds=duration,
-            rms_energy=rms_energy
+            rms_energy=rms_energy,
+            is_live_call=is_live
         )
     except RuntimeError as re:
         logger.error(f"ML Model inference error: {re}")
@@ -90,7 +92,8 @@ async def analyze_file(
         prediction=prediction,
         is_caller_unknown=is_caller_unknown,
         is_sensitive_request=is_sensitive_request,
-        urgency_flag=urgency_flag
+        urgency_flag=urgency_flag,
+        is_live_call=is_live
     )
 
     final_risk = risk_result["final_risk"]
@@ -133,7 +136,6 @@ async def analyze_file(
         )
     except Exception as db_err:
         logger.error(f"Failed to record analysis to database: {db_err}")
-        # Note: Non-blocking for the immediate analysis response, but logged
 
     return AnalysisResultResponse(
         event_id=event_id,
@@ -149,6 +151,75 @@ async def analyze_file(
         risk_explanation=risk_explanation,
         timestamp=timestamp_iso,
         file_name=effective_file_name,
+        biometric_indicators=model_result.get("biometric_indicators", []),
         is_flagged=False,
+        status="success"
+    )
+
+@router.post("/live-chunk", response_model=LiveCallChunkResponse)
+@router.post("/analysis/live-chunk", response_model=LiveCallChunkResponse)
+async def analyze_live_chunk(
+    file: UploadFile = File(..., description="Short 3-second audio chunk"),
+    user: dict = Depends(verify_token)
+):
+    """
+    Ultra-low-latency real-time inference endpoint for live phone call assistance.
+    Processes 3-second streaming audio chunks with debounced alert recommendations and vibration patterns.
+    """
+    if not file or not file.filename:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No audio chunk provided.")
+
+    try:
+        file_bytes = await file.read()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Failed reading chunk: {e}")
+
+    try:
+        audio_data, duration, rms_energy = process_audio(file_bytes, filename=file.filename)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Failed preprocessing chunk: {e}")
+
+    try:
+        result = model_service.predict(
+            audio_data=audio_data,
+            duration_seconds=duration,
+            rms_energy=rms_energy,
+            is_live_call=True
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Inference failed: {e}")
+
+    fake_score = result["fake_score"]
+    real_score = result["real_score"]
+    prediction = result["prediction"]
+
+    # Debounced alert triggers & vibration patterns for mobile live calls
+    if fake_score >= 0.75:
+        is_alert = True
+        alert_level = "CRITICAL"
+        recommendation = f"CRITICAL SPOOF DETECTED ({fake_score * 100:.1f}% AI Clone). High risk of synthetic voice impersonation!"
+        vibrate_pattern = [200, 100, 200, 100, 300]
+    elif fake_score >= 0.50:
+        is_alert = True
+        alert_level = "CAUTION"
+        recommendation = f"POTENTIAL SPOOF DETECTED ({fake_score * 100:.1f}% AI probability). Exercise caution and verify caller identity."
+        vibrate_pattern = [150, 100, 150]
+    else:
+        is_alert = False
+        alert_level = "NORMAL"
+        recommendation = f"Authentic human speech confirmed ({fake_score * 100:.1f}% spoof score). Acoustic harmonics normal."
+        vibrate_pattern = []
+
+    return LiveCallChunkResponse(
+        prediction=prediction,
+        fake_score=fake_score,
+        real_score=real_score,
+        confidence=result["confidence"],
+        is_alert=is_alert,
+        alert_level=alert_level,
+        recommendation=recommendation,
+        vibrate_pattern=vibrate_pattern,
+        biometric_indicators=result.get("biometric_indicators", []),
+        duration_seconds=round(duration, 2),
         status="success"
     )

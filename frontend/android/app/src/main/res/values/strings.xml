@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">VoiceShield - AI Voice Spoof Detection</string>
+    <string name="title_activity_main">VoiceShield - AI Voice Spoof Detection</string>
+    <string name="package_name">com.voiceshield.app</string>
+    <string name="custom_url_scheme">com.voiceshield.app</string>
+</resources>

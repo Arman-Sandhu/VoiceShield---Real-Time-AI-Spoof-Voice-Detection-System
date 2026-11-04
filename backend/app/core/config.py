@@ -19,7 +19,7 @@ class Settings:
     
     # ML Model Configuration
     # Hugging Face model: Wav2Vec2 Sequence Classification
-    MODEL_NAME: str = os.getenv("HF_MODEL_PATH", "MelodyMachine/Deepfake-audio-detection-V2")
+    MODEL_NAME: str = os.getenv("HF_MODEL_PATH", "Gustking/wav2vec2-large-xlsr-deepfake-audio-classification")
     TARGET_SAMPLE_RATE: int = 16000
     MIN_AUDIO_DURATION_SEC: float = 1.0
     MAX_AUDIO_DURATION_SEC: float = 60.0

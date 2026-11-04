@@ -37,6 +37,7 @@ class AnalysisResultResponse(BaseModel):
     risk_explanation: str
     timestamp: str
     file_name: Optional[str] = None
+    biometric_indicators: Optional[List[str]] = None
     is_flagged: bool = False
     status: str = "success"
 
@@ -79,4 +80,17 @@ class UpdateUsernameResponse(BaseModel):
     user_id: str
     username: str
     message: str = "Username updated successfully."
+
+class LiveCallChunkResponse(BaseModel):
+    prediction: str = Field(description="AI_GENERATED | HUMAN_SPEECH | INCONCLUSIVE")
+    fake_score: float
+    real_score: float
+    confidence: float
+    is_alert: bool
+    alert_level: str = Field(description="NORMAL | CAUTION | CRITICAL")
+    recommendation: str
+    vibrate_pattern: List[int]
+    biometric_indicators: Optional[List[str]] = None
+    duration_seconds: float
+    status: str = "success"
 

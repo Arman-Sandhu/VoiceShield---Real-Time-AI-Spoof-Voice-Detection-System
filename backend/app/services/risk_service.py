@@ -8,20 +8,11 @@ def assess_contextual_risk(
     prediction: str,
     is_caller_unknown: bool,
     is_sensitive_request: bool,
-    urgency_flag: bool
+    urgency_flag: bool,
+    is_live_call: bool = False
 ) -> Dict[str, Any]:
     """
     Evaluates risk by combining objective acoustic spoof score with situational call context.
-    
-    Acoustic classification and contextual risk remain distinct assessments:
-    - fake_score: Acoustic model probability estimate (0.0 - 1.0)
-    - context_flags: Situational high-pressure social engineering indicators (0 - 3)
-    
-    Risk Level Decision Matrix:
-    - CRITICAL: High synthetic score (>0.75) + 1+ contextual flags OR moderate synthetic score (>0.50) + 3 contextual flags.
-    - HIGH: High synthetic score (>0.75) without flags OR moderate synthetic score (>0.50) with 1-2 flags OR 3 contextual flags on human voice.
-    - MEDIUM: Moderate synthetic score (>0.50) without flags OR human voice with 1-2 contextual flags.
-    - LOW: Human speech prediction (<0.50) with zero contextual flags.
     """
     context_count = int(is_caller_unknown) + int(is_sensitive_request) + int(urgency_flag)
 
@@ -35,15 +26,19 @@ def assess_contextual_risk(
 
     # Inconclusive prediction handling
     if prediction == "INCONCLUSIVE":
-        if context_count >= 2:
-            final_risk = "HIGH"
-            explanation = "Elevated risk: Audio sample was inconclusive or silent, but the call exhibits strong suspicious social engineering indicators (urgency/sensitive data)."
-        elif context_count == 1:
-            final_risk = "MEDIUM"
-            explanation = "Moderate risk: Audio authenticity could not be verified from the clip, and situational flags were present."
+        if is_live_call:
+            final_risk = "MEDIUM" if context_count >= 1 else "LOW"
+            explanation = "Inconclusive audio sample: Ambient noise or low vocal confidence detected. Real-time call assistant advises: Continue monitoring next 3-second call window before making final verdict."
         else:
-            final_risk = "LOW"
-            explanation = "Inconclusive audio: The acoustic sample could not be classified, but no contextual risk flags were indicated."
+            if context_count >= 2:
+                final_risk = "HIGH"
+                explanation = "Inconclusive - try to reduce background noise or upload/record again. Multiple situational high-pressure flags (urgency/sensitive data) were reported."
+            elif context_count == 1:
+                final_risk = "MEDIUM"
+                explanation = "Inconclusive - try to reduce background noise or upload/record again. One situational risk flag was noted."
+            else:
+                final_risk = "LOW"
+                explanation = "Inconclusive - try to reduce background noise or upload/record again."
         
         return {
             "final_risk": final_risk,

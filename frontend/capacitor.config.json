@@ -1,0 +1,26 @@
+{
+  "appId": "com.voiceshield.app",
+  "appName": "VoiceShield - AI Voice Spoof Detection",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "Haptics": {},
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_voiceshield",
+      "iconColor": "#00d4ff",
+      "sound": "beep.wav"
+    }
+  }
+}

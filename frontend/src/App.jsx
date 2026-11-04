@@ -72,8 +72,8 @@ function App() {
         {/* Navigation */}
         <Navbar user={user} username={username} onUpdateUsername={handleUpdateUsername} />
 
-        {/* Main Content Area */}
-        <main className="flex-1 w-full flex flex-col">
+        {/* Main Content Area (With responsive bottom spacing for mobile bottom bar) */}
+        <main className="flex-1 w-full flex flex-col pb-16 md:pb-0">
           <Routes>
             {/* Public Landing Page */}
             <Route path="/" element={<Landing user={user} />} />

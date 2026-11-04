@@ -34,6 +34,13 @@ export default function RiskBadge({ riskLevel = 'LOW', size = 'lg', showDescript
       bg: 'bg-red-500/20 border-red-500/50 shadow-[0_0_35px_rgba(239,68,68,0.4)] animate-pulse',
       icon: ShieldAlert,
       desc: 'Severe probability of AI voice cloning combined with urgent social engineering tactics!'
+    },
+    INCONCLUSIVE: {
+      label: 'INCONCLUSIVE SAMPLE',
+      color: 'text-slate-300',
+      bg: 'bg-slate-500/10 border-slate-500/30 shadow-[0_0_20px_rgba(148,163,184,0.15)]',
+      icon: AlertTriangle,
+      desc: 'Acoustic sample was inconclusive. Try to reduce ambient noise or upload/record again.'
     }
   };
 
