@@ -208,6 +208,8 @@ class DeepfakeModelService:
                 "fake_score": round(fake_score, 4),
                 "real_score": round(real_score, 4),
                 "confidence": round(confidence, 4),
+                "raw_fake_prob": round(raw_fake_prob, 4),
+                "bio_fake_prob": round(bio_fake_prob, 4),
                 "model_name": self.model_name,
                 "reason": reason,
                 "biometric_indicators": indicators,

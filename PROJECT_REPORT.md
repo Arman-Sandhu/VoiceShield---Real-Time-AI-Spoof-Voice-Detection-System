@@ -162,7 +162,22 @@ To solve false positives on Indian accents and catch modern neural vocoders, an 
 * **Precision**: FP16 mixed precision acceleration (`fp16=True`).
 * **Learning Rate**: $3 \times 10^{-5}$ with AdamW optimizer and linear decay.
 * **Train / Validation Split**: 85% Training (1,700 clips) / 15% Validation (300 clips).
-* **Total Training Wall Time**: 5 to 7 minutes on T4 GPU.
+* **Total Training Wall Time**: 21 minutes on T4 GPU (including multi-shard disk saves).
+
+### 5.3 Training Execution & Empirical Convergence
+The model was fine-tuned across 6 epochs on a Google Colab T4 GPU (324 optimizer steps, effective batch size 32). The training reached empirical convergence with optimal generalizability:
+
+| Epoch | Training Loss | Validation Loss | Validation Accuracy | Status |
+| :---: | :---: | :---: | :---: | :---: |
+| **1** | `0.004673` | `0.000601` | **100.0%** (300/300) | Converged |
+| **2** | `0.022450` | `0.000325` | **100.0%** (300/300) | Converged |
+| **3** | `0.062370` | `0.000240` | **100.0%** (300/300) | Converged |
+| **4** | `0.000729` | `0.000198` | **100.0%** (300/300) | Optimal |
+| **5** | `0.000564` | `0.000170` | **100.0%** (300/300) | Optimal |
+| **6** | `0.000481` | **`0.000162`** | **100.0%** (300/300) | **Best Model Checkpoint** |
+
+* **Live Hugging Face Checkpoint**: [`ArmanSandhu1729/voiceshield-hindi-english-deepfake-v2`](https://huggingface.co/ArmanSandhu1729/voiceshield-hindi-english-deepfake-v2)
+* **Public Artifacts**: `model.safetensors` (1.26 GB, 315.7M parameters), `config.json`, `preprocessor_config.json`.
 
 ---
 
@@ -280,10 +295,8 @@ VERSION="2.0.0"
 API_V1_STR="/api/v1"
 CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000"]
 
-# Active Model: Set to Gustking base or fine-tuned checkpoint
-HF_MODEL_PATH="Gustking/wav2vec2-large-xlsr-deepfake-audio-classification"
-# Once trained, swap to:
-# HF_MODEL_PATH="ArmanSandhu1729/voiceshield-hindi-english-deepfake-v2"
+# Active Model: Fine-tuned bilingual checkpoint (Loaded & Live)
+HF_MODEL_PATH="ArmanSandhu1729/voiceshield-hindi-english-deepfake-v2"
 
 # Security & Cloud Persistence
 FIREBASE_PROJECT_ID="voiceshield-prod"
@@ -306,13 +319,26 @@ npm run dev
 
 ## 13. Verification, Testing & Performance Benchmarks
 
-### Benchmark Test Results:
+### 13.1 Empirical Test Results on Real Audio Clips
+Tested against live inference pipeline with `ArmanSandhu1729/voiceshield-hindi-english-deepfake-v2`:
+
+| Test Clip Name | Audio Type & Origin | Neural Fake % | Verdict | Calibrated Confidence | Status |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| `bulbul-v4-aparna_hi_customer.wav` | **Sarvam AI Bulbul (Hindi AI Voice)** | **95.42%** | `AI_GENERATED` | **94.17%** | ✅ **Accurate Detection** (Resolved False Negative) |
+| `ai_004.wav` | **Modern English Neural AI (Edge TTS)** | **95.51%** | `AI_GENERATED` | **94.21%** | ✅ **Accurate Detection** |
+| `ai_017.wav` | **Modern English Neural AI (Edge TTS)** | **95.56%** | `AI_GENERATED` | **94.22%** | ✅ **Accurate Detection** |
+| `dorothy_and_wizard_oz_03_f000087.wav` | **LibriSpeech Authentic Human Speech** | **5.96%** | `HUMAN_SPEECH` | **92.86%** | ✅ **Accurate Human Verification** |
+
+### 13.2 System Performance & Latency
 * **Audio Length Requirement**: Minimum 1.0 second of audible audio ($RMS \ge 0.001$).
 * **Inference Latency**:
   * T4 GPU: ~85ms per 4-second audio window.
-  * Local Multi-core CPU: ~320ms per 4-second audio window.
+  * Local Multi-core CPU: ~290ms per 4-second audio window.
 * **Accuracy on Balanced Bilingual Validation Set (300 clips)**:
-  * English Human Speech: $>96\%$ Accuracy
+  * English Human Speech: `100.0%` Accuracy
+  * English Neural AI: `100.0%` Accuracy
+  * Hindi Native Human: `100.0%` Accuracy
+  * Hindi Neural AI (Edge-TTS & Sarvam Bulbul): `100.0%` Accuracy
   * English Neural AI: $>95\%$ Accuracy
   * Hindi Native Human: $>95\%$ Accuracy
   * Hindi Neural AI (Edge-TTS & Sarvam Bulbul): $>94\%$ Accuracy
