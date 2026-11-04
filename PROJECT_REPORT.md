@@ -387,7 +387,11 @@ Empirical testing across live user sessions revealed high reliability across all
   1. **Acoustic Air-Channel Transfer (Re-play Effect)**: Room reverberation, air absorption, and physical microphone diaphragm resonance introduce genuine physical acoustic micro-imperfections that mask subtle vocoder phase alignments.
   2. **Harmonic Degradation from Distortion**: High-frequency spectral bands (>4kHz) carrying vocoder artifacts are washed out by distortion.
   3. **Architectural Out-of-Distribution (OOD)**: Discrete audio token models generate physiological speech artifacts (breath intakes, hesitations) that differ from traditional vocoder-based synthesis.
-* **Hardening Roadmap**: Future training cycles will introduce synthetic Room Impulse Response (RIR) convolutions and noise-injection augmentations to train the latent feature extractor to look through physical room channels.
+* **Hardening Implementation**: Created automated hardening pipeline in [`notebooks/VoiceShield_v3_Hardened_Fine_Tuning.ipynb`](file:///c:/Users/acer.DESKTOP-C30RB92/Desktop/VoiceCloning26104/notebooks/VoiceShield_v3_Hardened_Fine_Tuning.ipynb) and [`scripts/train_hardened_v3.py`](file:///c:/Users/acer.DESKTOP-C30RB92/Desktop/VoiceCloning26104/scripts/train_hardened_v3.py). It incorporates:
+  1. **Room Impulse Response (RIR) convolutions** (reverberation decay simulation).
+  2. **Butterworth 300Hz-3400Hz telephonic bandpass & non-linear saturation**.
+  3. **Calibrated ambient room noise injection (SNR 15dB-30dB)**.
+  4. **Multi-condition validation harness** testing on clean, reverberant, and distorted speech.
 
 ---
 
@@ -401,6 +405,7 @@ Empirical testing across live user sessions revealed high reliability across all
 | **Nov 2026** | v2.2.0 | Created automated bilingual pipeline for 2,000 samples (500 English Real, 500 Hindi Real, 500 English AI, 500 Hindi AI) on Google Colab T4 GPU. Added master report documentation. |
 | **Nov 2026** | v2.3.0 | Fine-tuned 6 epochs to 100% validation accuracy (loss 0.000162); published `ArmanSandhu1729/voiceshield-hindi-english-deepfake-v2` to Hugging Face Hub. Activated in backend. |
 | **Nov 2026** | v2.4.0 | Built automated precision evaluation benchmark; executed 400-sample test (3.0s–6.0s duration) on Colab T4 GPU achieving **100.00% accuracy, 0.00% FPR, 0.00% FNR, 75.0ms latency**. |
+| **Nov 2026** | v3.0.0 | Built automated v3 hardening pipeline (`VoiceShield_v3_Hardened_Fine_Tuning.ipynb` & `train_hardened_v3.py`) with RIR room reverb simulation, telephonic bandpass distortion, ambient noise, and automated multi-condition validation. |
 
 ---
 
