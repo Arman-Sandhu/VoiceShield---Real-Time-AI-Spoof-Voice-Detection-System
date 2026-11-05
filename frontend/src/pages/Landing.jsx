@@ -32,28 +32,28 @@ export default function Landing({ user }) {
   };
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full max-w-full overflow-x-hidden flex flex-col items-center">
       {/* Hero Section */}
-      <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 flex flex-col items-center text-center">
+      <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-16 sm:pb-20 flex flex-col items-center text-center overflow-hidden">
         {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#00d4ff]/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute top-1/3 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] bg-[#a855f7]/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[200px] sm:h-[350px] bg-[#00d4ff]/10 rounded-full blur-[80px] sm:blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 sm:left-1/3 -translate-x-1/2 -translate-y-1/2 w-[240px] sm:w-[400px] h-[180px] sm:h-[300px] bg-[#a855f7]/10 rounded-full blur-[70px] sm:blur-[120px] pointer-events-none" />
 
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="relative z-10 max-w-4xl flex flex-col items-center"
+          className="relative z-10 w-full max-w-4xl flex flex-col items-center"
         >
-          <motion.div variants={itemVariants} className="mb-6">
-            <Badge variant="cyan" size="lg" icon={ShieldMicLogo}>
+          <motion.div variants={itemVariants} className="mb-4 sm:mb-6">
+            <Badge variant="cyan" size="md" icon={ShieldMicLogo}>
               Next-Gen Voice Biometric Security
             </Badge>
           </motion.div>
 
           <motion.h1
             variants={itemVariants}
-            className="text-3xl sm:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-white leading-[1.15] mb-4"
+            className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-white leading-[1.2] mb-4 break-words px-2"
           >
             VoiceShield{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00d4ff] via-[#38bdf8] to-[#a855f7]">
@@ -63,7 +63,7 @@ export default function Landing({ user }) {
 
           <motion.h2
             variants={itemVariants}
-            className="text-lg sm:text-2xl font-display font-semibold text-slate-200 tracking-wide mb-6"
+            className="text-base sm:text-xl md:text-2xl font-display font-semibold text-slate-200 tracking-wide mb-4 sm:mb-6 px-2"
           >
             Detect the Voice.{' '}
             <span className="text-[#00d4ff]">Defend the Truth.</span>
@@ -71,21 +71,21 @@ export default function Landing({ user }) {
 
           <motion.p
             variants={itemVariants}
-            className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed mb-10"
+            className="text-xs sm:text-base md:text-lg text-slate-300 max-w-2xl leading-relaxed mb-8 px-4"
           >
             AI-powered voice authenticity analysis designed to identify potentially synthetic speech
             and assess suspicious call scenarios in near-real-time.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-4">
-            <Link to={user ? '/analyze' : '/login'}>
-              <Button size="lg" variant="primary" icon={ArrowRight}>
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 w-full sm:w-auto px-4 sm:px-0">
+            <Link to={user ? '/analyze' : '/login'} className="w-full sm:w-auto">
+              <Button size="lg" variant="primary" icon={ArrowRight} className="w-full sm:w-auto">
                 {user ? 'Launch Analysis Workspace' : 'Get Started Now'}
               </Button>
             </Link>
 
-            <a href="#technology">
-              <Button size="lg" variant="secondary" icon={Cpu}>
+            <a href="#technology" className="w-full sm:w-auto">
+              <Button size="lg" variant="secondary" icon={Cpu} className="w-full sm:w-auto">
                 Explore Technology
               </Button>
             </a>
@@ -94,10 +94,10 @@ export default function Landing({ user }) {
           {/* Abstract Waveform Preview Card */}
           <motion.div
             variants={itemVariants}
-            className="w-full max-w-3xl mt-16 p-1 rounded-3xl bg-gradient-to-r from-[#00d4ff]/30 via-white/10 to-[#a855f7]/30 shadow-2xl"
+            className="w-full max-w-3xl mt-12 sm:mt-16 p-1 rounded-3xl bg-gradient-to-r from-[#00d4ff]/30 via-white/10 to-[#a855f7]/30 shadow-2xl"
           >
-            <div className="bg-[#0f1117] rounded-[22px] p-6 sm:p-8 border border-white/[0.08] backdrop-blur-2xl flex flex-col items-center">
-              <div className="w-full flex items-center justify-between border-b border-white/[0.08] pb-4 mb-6 text-xs font-mono text-slate-400">
+            <div className="bg-[#0f1117] rounded-[22px] p-4 sm:p-8 border border-white/[0.08] backdrop-blur-2xl flex flex-col items-center">
+              <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-white/[0.08] pb-4 mb-6 text-[11px] sm:text-xs font-mono text-slate-400 text-center sm:text-left">
                 <span className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                   SPECTRAL ACOUSTIC SENSING ACTIVE
@@ -106,7 +106,7 @@ export default function Landing({ user }) {
               </div>
 
               {/* Decorative Audio Frequency Bars */}
-              <div className="w-full h-24 flex items-end justify-center gap-1.5 sm:gap-2 px-4 py-2">
+              <div className="w-full h-20 sm:h-24 flex items-end justify-center gap-1 sm:gap-2 px-1 sm:px-4 py-2 overflow-hidden">
                 {[
                   15, 30, 45, 20, 65, 85, 40, 95, 70, 35, 60, 80, 100, 75, 50, 90, 65, 30,
                   85, 45, 95, 60, 40, 75, 90, 50, 30, 70, 85, 40, 60, 25, 45, 20
@@ -122,22 +122,22 @@ export default function Landing({ user }) {
                       duration: 1.6 + (idx % 5) * 0.2,
                       ease: 'easeInOut'
                     }}
-                    className="w-2 rounded-t bg-gradient-to-t from-[#00d4ff] to-[#a855f7] opacity-85"
+                    className="w-1.5 sm:w-2 rounded-t bg-gradient-to-t from-[#00d4ff] to-[#a855f7] opacity-85 shrink-0"
                   />
                 ))}
               </div>
 
-              <div className="w-full mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/[0.08] text-left text-xs font-mono text-slate-300">
-                <div>
-                  <span className="text-slate-500 block">DETECTION ENGINE</span>
+              <div className="w-full mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-white/[0.08] text-center sm:text-left text-xs font-mono text-slate-300">
+                <div className="bg-white/[0.02] sm:bg-transparent p-2 sm:p-0 rounded-lg">
+                  <span className="text-slate-500 block text-[10px] sm:text-xs">DETECTION ENGINE</span>
                   <span className="text-white font-semibold">Pretrained Wav2Vec2</span>
                 </div>
-                <div>
-                  <span className="text-slate-500 block">TARGET DOMAIN</span>
-                  <span className="text-[#00d4ff] font-semibold">English Speech Audio</span>
+                <div className="bg-white/[0.02] sm:bg-transparent p-2 sm:p-0 rounded-lg">
+                  <span className="text-slate-500 block text-[10px] sm:text-xs">TARGET DOMAIN</span>
+                  <span className="text-[#00d4ff] font-semibold">English & Hindi Audio</span>
                 </div>
-                <div>
-                  <span className="text-slate-500 block">EVALUATION</span>
+                <div className="bg-white/[0.02] sm:bg-transparent p-2 sm:p-0 rounded-lg">
+                  <span className="text-slate-500 block text-[10px] sm:text-xs">EVALUATION</span>
                   <span className="text-emerald-400 font-semibold">Deterministic Threat Engine</span>
                 </div>
               </div>

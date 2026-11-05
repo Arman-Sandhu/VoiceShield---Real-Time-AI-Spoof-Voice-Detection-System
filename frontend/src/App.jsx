@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged, updateProfile } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 import { auth } from './services/auth';
 import api from './services/api';
 
@@ -43,7 +45,25 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       fetchUserProfile(currentUser);
     });
-    return () => unsubscribe();
+
+    // Native Android Back Button navigation handler
+    let backListener = null;
+    if (Capacitor.isNativePlatform()) {
+      backListener = CapApp.addListener('backButton', ({ canGoBack }) => {
+        if (window.location.pathname === '/' || !canGoBack) {
+          CapApp.exitApp();
+        } else {
+          window.history.back();
+        }
+      });
+    }
+
+    return () => {
+      unsubscribe();
+      if (backListener) {
+        backListener.then((h) => h.remove()).catch(() => {});
+      }
+    };
   }, []);
 
   const handleUpdateUsername = async (newUsername) => {
@@ -68,7 +88,7 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-[#07080f] text-slate-100 flex flex-col relative selection:bg-[#00d4ff]/30 selection:text-white ambient-gradient">
+      <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#07080f] text-slate-100 flex flex-col relative selection:bg-[#00d4ff]/30 selection:text-white ambient-gradient">
         {/* Navigation */}
         <Navbar user={user} username={username} onUpdateUsername={handleUpdateUsername} />
 

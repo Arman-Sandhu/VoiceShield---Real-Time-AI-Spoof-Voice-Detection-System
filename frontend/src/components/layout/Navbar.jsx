@@ -56,20 +56,20 @@ export default function Navbar({ user, username, onUpdateUsername }) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#07080f]/80 backdrop-blur-xl border-b border-white/[0.08]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full bg-[#07080f]/90 backdrop-blur-xl border-b border-white/[0.08]">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00d4ff]/20 to-[#a855f7]/20 border border-[#00d4ff]/40 flex items-center justify-center text-[#00d4ff] group-hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] transition-all">
-            <ShieldMicLogo size={22} className="group-hover:scale-110 transition-transform" />
+        <Link to="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#00d4ff]/20 to-[#a855f7]/20 border border-[#00d4ff]/40 flex items-center justify-center text-[#00d4ff] group-hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] transition-all">
+            <ShieldMicLogo size={20} className="group-hover:scale-110 transition-transform sm:w-[22px] sm:h-[22px]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-display font-extrabold text-xl tracking-tight text-white group-hover:text-[#00d4ff] transition-colors">
+              <span className="font-display font-extrabold text-lg sm:text-xl tracking-tight text-white group-hover:text-[#00d4ff] transition-colors">
                 VOICE<span className="text-[#00d4ff]">SHIELD</span>
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono tracking-wider">AI Powered Cyber Defense System</p>
+            <p className="hidden sm:block text-[11px] text-slate-400 font-mono tracking-wider">AI Powered Cyber Defense System</p>
           </div>
         </Link>
 

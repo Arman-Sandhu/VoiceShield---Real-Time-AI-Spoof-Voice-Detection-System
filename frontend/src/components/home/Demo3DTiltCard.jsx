@@ -109,7 +109,7 @@ export default function Demo3DTiltCard({ user }) {
   ];
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 my-16 [perspective:1400px]">
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 my-10 sm:my-16 [perspective:1400px] overflow-hidden">
       {/* Outer 3D Tilt Card Container */}
       <div
         ref={cardRef}
@@ -137,7 +137,7 @@ export default function Demo3DTiltCard({ user }) {
         />
 
         {/* Card Body */}
-        <div className="relative bg-[#0b0d14]/95 backdrop-blur-2xl rounded-[22px] p-6 sm:p-10 border border-white/[0.08] overflow-hidden flex flex-col gap-6 [transform-style:preserve-3d]">
+        <div className="relative bg-[#0b0d14]/95 backdrop-blur-2xl rounded-[22px] p-4 sm:p-10 border border-white/[0.08] overflow-hidden flex flex-col gap-6 [transform-style:preserve-3d]">
           {/* Top Header Layer [Depth +30px] */}
           <div
             style={{ transform: 'translateZ(30px)' }}

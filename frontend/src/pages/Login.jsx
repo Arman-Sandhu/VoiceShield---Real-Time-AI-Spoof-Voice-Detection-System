@@ -120,7 +120,12 @@ export default function Login({ onLoginSuccess }) {
     } catch (err) {
       console.error('Google Auth error:', err);
       if (err.code !== 'auth/popup-closed-by-user') {
-        setError(err.message || 'Google sign-in failed. Please try again.');
+        const msg = err.message || '';
+        if (msg.includes('missing initial state') || err.code === 'auth/operation-not-supported-in-this-environment') {
+          setError('Google Sign-in inside an Android app wrapper is blocked by Google security policies. Please use Email & Password below, or sign in via Google Chrome browser.');
+        } else {
+          setError(msg || 'Google sign-in failed. Please try again.');
+        }
       }
     } finally {
       setLoading(false);
@@ -128,20 +133,20 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-4 py-16 flex flex-col items-center">
+    <div className="w-full max-w-md mx-auto px-4 py-8 sm:py-16 flex flex-col items-center">
       {/* Brand Icon Header */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="flex flex-col items-center mb-8 text-center"
+        className="flex flex-col items-center mb-6 sm:mb-8 text-center"
       >
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#00d4ff]/20 to-[#a855f7]/20 border border-[#00d4ff]/40 flex items-center justify-center text-[#00d4ff] shadow-[0_0_30px_rgba(0,212,255,0.3)] mb-4">
-          <ShieldMicLogo size={32} />
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#00d4ff]/20 to-[#a855f7]/20 border border-[#00d4ff]/40 flex items-center justify-center text-[#00d4ff] shadow-[0_0_30px_rgba(0,212,255,0.3)] mb-3 sm:mb-4">
+          <ShieldMicLogo size={28} />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white">
+        <h2 className="text-xl sm:text-3xl font-display font-extrabold text-white">
           {isSignUp ? 'Create VoiceShield Account' : 'Welcome to VoiceShield'}
         </h2>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xs sm:max-w-none">
           {isSignUp
             ? 'Sign up to analyze caller speech and access secure history records.'
             : 'Authenticate to access the speech authenticity workspace.'}
@@ -149,7 +154,7 @@ export default function Login({ onLoginSuccess }) {
       </motion.div>
 
       {/* Main Glassmorphic Auth Card */}
-      <Card variant="elevated" className="w-full p-8 relative">
+      <Card variant="elevated" className="w-full p-5 sm:p-8 relative">
         {/* Tab Switcher */}
         <div className="flex rounded-xl bg-[#0f1117] p-1 border border-white/[0.08] mb-6">
           <button
