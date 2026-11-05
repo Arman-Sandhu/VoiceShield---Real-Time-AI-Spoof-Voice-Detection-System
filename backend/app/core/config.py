@@ -18,8 +18,9 @@ class Settings:
     API_V1_PREFIX: str = "/api/v1"
     
     # ML Model Configuration
-    # Hugging Face model: Wav2Vec2 Sequence Classification
-    MODEL_NAME: str = os.getenv("HF_MODEL_PATH", "Gustking/wav2vec2-large-xlsr-deepfake-audio-classification")
+    # Hugging Face model or local directory: Wav2Vec2 Sequence Classification
+    _raw_model_path: str = os.getenv("HF_MODEL_PATH", "ArmanSandhu1729/voiceshield-hindi-english-deepfake-v3-hardened").strip()
+    MODEL_NAME: str = str((BASE_DIR / _raw_model_path).resolve()) if (BASE_DIR / _raw_model_path).exists() else _raw_model_path
     TARGET_SAMPLE_RATE: int = 16000
     MIN_AUDIO_DURATION_SEC: float = 1.0
     MAX_AUDIO_DURATION_SEC: float = 60.0

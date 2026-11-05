@@ -140,9 +140,15 @@ def run_hardened_pipeline(
         preds = np.argmax(logits, axis=-1)
         return acc_metric.compute(predictions=preds, references=labels)
         
+    import inspect
+    strategy_kwargs = (
+        {"eval_strategy": "epoch"}
+        if "eval_strategy" in inspect.signature(TrainingArguments.__init__).parameters
+        else {"evaluation_strategy": "epoch"}
+    )
+
     train_args = TrainingArguments(
         output_dir="./voiceshield-v3-hardened",
-        eval_strategy="epoch",
         save_strategy="epoch",
         learning_rate=lr,
         per_device_train_batch_size=batch_size,
@@ -155,7 +161,8 @@ def run_hardened_pipeline(
         save_total_limit=1,
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
-        report_to="none"
+        report_to="none",
+        **strategy_kwargs
     )
     
     trainer = Trainer(

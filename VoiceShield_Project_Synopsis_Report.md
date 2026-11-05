@@ -138,15 +138,16 @@ The architecture follows a modular, decoupled microservice-ready design:
 ## 6. Machine Learning & Deep Learning Methodology
 
 ### 6.1 Model Architecture & Selection
-VoiceShield leverages **`MelodyMachine/Deepfake-audio-detection-V2`**, a specialized sequence classification model fine-tuned on extensive datasets of both genuine and cloned speech (including ElevenLabs, Tortoise, and Tacotron variants).
+VoiceShield leverages **`ArmanSandhu1729/voiceshield-hindi-english-deepfake-v2`** (and its v3-hardened variant), an advanced bilingual sequence classification model fine-tuned on native English and Hindi multi-speaker datasets.
 
-- **Base Architecture**: Wav2Vec 2.0 (`Wav2Vec2ForSequenceClassification`)
-- **Total Parameters**: 94,569,090 (~380 MB memory footprint)
-- **Feature Encoder**: Multi-layer temporal convolutional network (TCN) extracting 512-dimensional latent feature vectors from raw audio waveforms.
-- **Context Transformer**: 12 transformer encoder blocks with 8 self-attention heads each (hidden size 768).
+- **Base Architecture**: Wav2Vec 2.0 XLSR-53 (`Wav2Vec2ForSequenceClassification`)
+- **Total Parameters**: 315,700,000 (~1.26 GB memory footprint)
+- **Feature Encoder**: 7 temporal convolutional layers extracting 512-dimensional latent feature vectors from raw 16,000 Hz waveforms (frozen during continual fine-tuning to preserve acoustic speech foundations).
+- **Context Transformer**: 24 transformer encoder blocks with 16 self-attention heads each (hidden size 1024).
 - **Classification Head**: Mean-pooling layer followed by a linear projection head mapping latent states to 2 output logits:
-  - **Index 0**: `fake` (Synthetic / Voice Clone)
-  - **Index 1**: `real` (Authentic Human Voice)
+  - **Index 0**: `real` (Authentic Human Voice)
+  - **Index 1**: `fake` (Synthetic / Voice Clone)
+- **Continual Learning Governance**: Standardized on **Cumulative Anchor Replay + Automated Regression Gate** using the permanent **Hugging Face Golden Vault** (`ArmanSandhu1729/voiceshield-golden-vault`) to ensure 0% catastrophic forgetting across future releases.
 
 ### 6.2 Mathematical Formulation
 Given an audio signal $x \in \mathbb{R}^T$ sampled at 16,000 Hz, the feature encoder produces latent representations:

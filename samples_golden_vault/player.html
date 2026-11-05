@@ -1,0 +1,224 @@
+<!-- cd project folder then start samples_golden_vault/player.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VoiceShield Golden Vault - Audio Player</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      margin: 0;
+      padding: 30px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #58a6ff;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      color: #8b949e;
+      margin-top: 0;
+      margin-bottom: 25px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f0f6fc;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-real {
+      background: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+      border: 1px solid rgba(46, 160, 67, 0.4);
+    }
+    .badge-fake {
+      background: rgba(248, 81, 73, 0.2);
+      color: #f85149;
+      border: 1px solid rgba(248, 81, 73, 0.4);
+    }
+    .meta {
+      font-size: 13px;
+      color: #8b949e;
+      margin-bottom: 14px;
+    }
+    audio {
+      width: 100%;
+      height: 40px;
+      border-radius: 8px;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛡️ VoiceShield Golden Vault — Categorized Audio Player</h1>
+    <p class="subtitle">3,000 Cloud Anchors Dataset (500 clips per category) • Live Sample Audition</p>
+
+    <div class="grid">
+      <!-- 1. en_human -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎙️ English Human Speech</div>
+          <span class="badge badge-real">Real Human (0)</span>
+        </div>
+        <div class="meta">📁 Category: <code>en_human</code> | File: <code>en_real_124.wav</code> (FLEURS)</div>
+        <audio controls src="en_human/en_real_124.wav"></audio>
+      </div>
+
+      <!-- 2. hi_human -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎙️ Hindi Human Speech</div>
+          <span class="badge badge-real">Real Human (0)</span>
+        </div>
+        <div class="meta">📁 Category: <code>hi_human</code> | File: <code>hi_real_440.wav</code> (FLEURS)</div>
+        <audio controls src="hi_human/hi_real_440.wav"></audio>
+      </div>
+
+      <!-- 3. en_ai -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🤖 English AI Synthetic Clone</div>
+          <span class="badge badge-fake">Deepfake (1)</span>
+        </div>
+        <div class="meta">📁 Category: <code>en_ai</code> | File: <code>en_ai_309.wav</code> (Edge-TTS Guy)</div>
+        <audio controls src="en_ai/en_ai_309.wav"></audio>
+      </div>
+
+      <!-- 4. hi_ai -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🤖 Hindi AI Synthetic Clone</div>
+          <span class="badge badge-fake">Deepfake (1)</span>
+        </div>
+        <div class="meta">📁 Category: <code>hi_ai</code> | File: <code>hi_ai_99.wav</code> (Edge-TTS Swara)</div>
+        <audio controls src="hi_ai/hi_ai_99.wav"></audio>
+      </div>
+
+      <!-- 5. reverb_replay Real -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔊 Replay Attack: Human in Room</div>
+          <span class="badge badge-real">Real + RIR Echo</span>
+        </div>
+        <div class="meta">📁 Category: <code>reverb_replay</code> | File: <code>rev_real_236.wav</code></div>
+        <audio controls src="reverb_replay/rev_real_236.wav"></audio>
+      </div>
+
+      <!-- 6. reverb_replay Fake -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔊 Replay Attack: AI Clone in Room</div>
+          <span class="badge badge-fake">Fake + RIR Echo</span>
+        </div>
+        <div class="meta">📁 Category: <code>reverb_replay</code> | File: <code>rev_fake_sample.wav</code></div>
+        <audio controls src="reverb_replay/rev_fake_sample.wav"></audio>
+      </div>
+
+      <!-- 7. phone_distorted Real -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📞 Telephonic: Human Phone Call</div>
+          <span class="badge badge-real">Real + 300-3400Hz</span>
+        </div>
+        <div class="meta">📁 Category: <code>phone_distorted</code> | File: <code>dist_real_99.wav</code></div>
+        <audio controls src="phone_distorted/dist_real_99.wav"></audio>
+      </div>
+
+      <!-- 8. phone_distorted Fake -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📞 Telephonic: AI Clone Phone Call</div>
+          <span class="badge badge-fake">Fake + 300-3400Hz</span>
+        </div>
+        <div class="meta">📁 Category: <code>phone_distorted</code> | File: <code>dist_fake_sample.wav</code></div>
+        <audio controls src="phone_distorted/dist_fake_sample.wav"></audio>
+      </div>
+
+      <!-- 9. Gemini Hindi Distorted Full -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🤖 Gemini Hindi Speech (Distorted / Phone)</div>
+          <span class="badge badge-fake">Deepfake (1)</span>
+        </div>
+        <div class="meta">📁 Category: <code>gemini_frontier</code> | File: <code>gemini_hi_distorted_full.wav</code></div>
+        <audio controls src="gemini_frontier/gemini_hi_distorted_full.wav"></audio>
+      </div>
+
+      <!-- 10. Gemini Hindi Reverb Replay -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔊 Gemini Hindi Replay (Room Echo)</div>
+          <span class="badge badge-fake">Deepfake (1)</span>
+        </div>
+        <div class="meta">📁 Category: <code>gemini_frontier</code> | File: <code>gemini_hi_reverb.wav</code></div>
+        <audio controls src="gemini_frontier/gemini_hi_reverb.wav"></audio>
+      </div>
+
+      <!-- 11. Gemini English Frontier Clean -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🤖 Gemini English Conversational (Clean)</div>
+          <span class="badge badge-fake">Deepfake (1)</span>
+        </div>
+        <div class="meta">📁 Category: <code>gemini_frontier</code> | File: <code>gemini_en_bank_ava_clean.wav</code></div>
+        <audio controls src="gemini_frontier/gemini_en_bank_ava_clean.wav"></audio>
+      </div>
+
+      <!-- 12. Gemini English Frontier Distorted -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📞 Gemini English Phone Distorted</div>
+          <span class="badge badge-fake">Deepfake (1)</span>
+        </div>
+        <div class="meta">📁 Category: <code>gemini_frontier</code> | File: <code>gemini_en_sigma_andrew_distorted.wav</code></div>
+        <audio controls src="gemini_frontier/gemini_en_sigma_andrew_distorted.wav"></audio>
+      </div>
+
+      <!-- 13. Gemini Hindi Read Aloud Relaxed Voice -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🤖 Gemini Hindi Conversational / Read Aloud</div>
+          <span class="badge badge-fake">Deepfake (1)</span>
+        </div>
+        <div class="meta">📁 Category: <code>gemini_frontier</code> | File: <code>gemini_hi_readaloud_relaxed.wav</code></div>
+        <audio controls src="gemini_frontier/gemini_hi_readaloud_relaxed.wav"></audio>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

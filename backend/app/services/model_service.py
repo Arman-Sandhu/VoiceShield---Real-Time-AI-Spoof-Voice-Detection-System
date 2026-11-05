@@ -6,7 +6,6 @@ import torch
 from transformers import AutoFeatureExtractor, AutoModelForAudioClassification
 
 from app.core.config import settings
-from app.services.biometric_service import biometric_engine
 
 logger = logging.getLogger("voiceshield.model_service")
 
@@ -135,72 +134,98 @@ class DeepfakeModelService:
             }
 
         try:
-            # Preprocess features using the model's native Wav2Vec2 feature extractor
-            inputs = self.feature_extractor(
-                audio_data,
-                sampling_rate=self.sampling_rate,
-                return_tensors="pt"
-            )
+            temperature = 2.4
+            window_samples = int(3.0 * self.sampling_rate)
+            stride_samples = int(1.0 * self.sampling_rate)
 
-            # Move inputs to target device (CPU/GPU)
-            input_values = inputs.input_values.to(self.device)
+            # Single window execution for short clips (<= 3.0s)
+            if len(audio_data) <= window_samples:
+                inputs = self.feature_extractor(
+                    audio_data,
+                    sampling_rate=self.sampling_rate,
+                    return_tensors="pt"
+                )
+                input_values = inputs.input_values.to(self.device)
 
-            with torch.no_grad():
-                outputs = self.model(input_values)
-                logits = outputs.logits.squeeze()
+                with torch.no_grad():
+                    outputs = self.model(input_values)
+                    logits = outputs.logits.squeeze()
+                    scaled_logits = logits / temperature
+                    probs = torch.softmax(scaled_logits, dim=-1).cpu().tolist()
 
-                # Temperature Scaling (T = 2.4):
-                # Prevents extreme overconfidence (snapping to 0.0001 or 0.9999) and produces natural spread
-                temperature = 2.4
-                scaled_logits = logits / temperature
-                probs = torch.softmax(scaled_logits, dim=-1).cpu().tolist()
+                if isinstance(probs, float):
+                    probs = [probs, 1.0 - probs]
 
-            # Ensure probs is a list of length 2
-            if isinstance(probs, float):
-                probs = [probs, 1.0 - probs]
-
-            raw_fake_prob = float(probs[self.fake_idx])
-            raw_real_prob = float(probs[self.real_idx])
-
-            # Layer 2: Biometric Acoustic Analysis (Language-Independent)
-            bio_res = biometric_engine.analyze_biometrics(audio_data, sr=self.sampling_rate)
-            bio_fake_prob = float(bio_res["bio_fake_prob"])
-            indicators = bio_res.get("indicators", [])
-            is_human_bio = bio_res.get("is_human_biometrics", False)
-
-            # Dynamic Fusion:
-            # If the neural model detects synthetic patterns (>= 0.50) OR biometric indicators flag AI:
-            if raw_fake_prob >= 0.50:
-                effective_fake_prob = max(raw_fake_prob, bio_fake_prob)
-            elif bio_fake_prob >= 0.60 or len(indicators) >= 2:
-                effective_fake_prob = max(raw_fake_prob, bio_fake_prob)
-            elif is_human_bio and raw_fake_prob < 0.45:
-                effective_fake_prob = min(raw_fake_prob, bio_fake_prob)
+                raw_fake_prob = float(probs[self.fake_idx])
+                effective_fake_prob = raw_fake_prob
             else:
-                effective_fake_prob = 0.60 * raw_fake_prob + 0.40 * bio_fake_prob
+                # Batched temporal sliding-window aggregation for long recordings (> 3.0s)
+                # Prevents unvoiced margins / pauses from diluting active synthetic speech bursts
+                chunks = []
+                chunk_rms = []
+                min_chunk_len = int(0.5 * self.sampling_rate)
 
-            # Strict Binary Classification (ZERO INCONCLUSIVE):
+                for start_idx in range(0, len(audio_data) - min_chunk_len, stride_samples):
+                    end_idx = min(start_idx + window_samples, len(audio_data))
+                    chunk = audio_data[start_idx:end_idx]
+                    if len(chunk) < min_chunk_len:
+                        continue
+                    c_rms = float(np.sqrt(np.mean(chunk**2)))
+                    # Ignore unvoiced / silent windows if active speech chunks already exist
+                    if c_rms < 0.012 and len(chunks) > 0:
+                        continue
+                    chunks.append(chunk)
+                    chunk_rms.append(max(c_rms, 0.005))
+
+                if not chunks:
+                    chunks = [audio_data]
+                    chunk_rms = [1.0]
+
+                # Process all windows in parallel in a single batched forward pass
+                inputs = self.feature_extractor(
+                    chunks,
+                    sampling_rate=self.sampling_rate,
+                    return_tensors="pt",
+                    padding=True
+                )
+                input_values = inputs.input_values.to(self.device)
+
+                with torch.no_grad():
+                    outputs = self.model(input_values)
+                    logits = outputs.logits
+                    probs = torch.softmax(logits / temperature, dim=-1)
+                    chunk_fakes = probs[:, self.fake_idx].cpu().numpy()
+
+                weights = np.array(chunk_rms) / sum(chunk_rms)
+                weighted_mean_fake = float(np.sum(chunk_fakes * weights))
+                peak_fake = float(np.max(chunk_fakes))
+
+                # Calibrated aggregation: 50% peak burst + 50% active speech energy-weighted mean
+                effective_fake_prob = float(0.5 * peak_fake + 0.5 * weighted_mean_fake)
+                raw_fake_prob = effective_fake_prob
+
+                logger.info(
+                    f"Temporal sliding window aggregation: windows={len(chunks)}, peak_fake={peak_fake:.4f}, "
+                    f"weighted_mean={weighted_mean_fake:.4f}, effective_fake={effective_fake_prob:.4f}"
+                )
+
+            # Strict Binary Classification driven purely by deep learning model
             if effective_fake_prob >= 0.50:
-                normalized = (effective_fake_prob - 0.50) / 0.50
-                fake_score = 0.76 + (normalized * 0.20)
+                fake_score = effective_fake_prob
                 real_score = 1.0 - fake_score
                 prediction = "AI_GENERATED"
                 confidence = fake_score
-                if indicators:
-                    reason = f"Synthetic speech artifacts detected: {', '.join(indicators[:2])}"
-                else:
-                    reason = "Acoustic features display synthetic vocoder artifacts, spectral phase discontinuities, and neural synthesis patterns."
+                reason = "Acoustic features display synthetic patterns and neural speech synthesis characteristics."
             else:
-                normalized = effective_fake_prob / 0.50
-                fake_score = 0.05 + (normalized * 0.18)
+                fake_score = effective_fake_prob
                 real_score = 1.0 - fake_score
                 prediction = "HUMAN_SPEECH"
                 confidence = real_score
-                reason = "Acoustic parameters match authentic human vocal tract resonance and natural micro-tremor variance."
+                reason = "Acoustic parameters match authentic human vocal tract resonance and natural speech dynamics."
 
             logger.info(
-                f"Hybrid calibrated inference completed: prediction={prediction}, fake_score={fake_score:.4f}, "
-                f"raw_fake={raw_fake_prob:.4f}, bio_fake={bio_fake_prob:.4f}, duration={duration_seconds:.2f}s, live_call={is_live_call}"
+                f"Neural inference completed: prediction={prediction}, fake_score={fake_score:.4f}, "
+                f"raw_fake={raw_fake_prob:.4f}, duration={duration_seconds:.2f}s, live_call={is_live_call}"
             )
 
             return {
@@ -209,10 +234,10 @@ class DeepfakeModelService:
                 "real_score": round(real_score, 4),
                 "confidence": round(confidence, 4),
                 "raw_fake_prob": round(raw_fake_prob, 4),
-                "bio_fake_prob": round(bio_fake_prob, 4),
+                "bio_fake_prob": 0.0,
                 "model_name": self.model_name,
                 "reason": reason,
-                "biometric_indicators": indicators,
+                "biometric_indicators": [],
                 "status": "success"
             }
 

@@ -43,6 +43,14 @@ voiceshield.db
 firebase-admin.json
 *.pem
 
+# Large Model Weights & Checkpoints (>100MB, tracked on Hugging Face)
+backend/models/
+models/
+*.safetensors
+*.bin
+*.pt
+*.onnx
+
 # Node
 node_modules/
 npm-debug.log*

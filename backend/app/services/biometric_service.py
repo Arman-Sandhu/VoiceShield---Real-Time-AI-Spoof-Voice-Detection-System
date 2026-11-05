@@ -61,8 +61,6 @@ class AcousticBiometricEngine:
                 if jitter < 0.0075:
                     fake_evidence_points += 1.4
                     indicators.append("Hyper-smooth pitch trajectory (lacks biological vocal cord micro-tremors).")
-                elif jitter > 0.0095 and pitch_std > 8.0:
-                    fake_evidence_points -= 1.0  # Strong natural human indicator
                     
                 # Check B: Unnatural pitch monotonicity (flat robotic pitch synthesis)
                 if pitch_std < 4.5 and len(voiced) > 25:
@@ -82,8 +80,6 @@ class AcousticBiometricEngine:
             if mean_flatness < 0.00008:
                 fake_evidence_points += 0.9
                 indicators.append("Compressed spectral harmonic structure characteristic of neural vocoders.")
-            elif mean_flatness > 0.0008 and flatness_std > 0.0015:
-                fake_evidence_points -= 0.6  # Natural room acoustics & breathing variance
         except Exception as e:
             logger.debug(f"Biometric spectral flatness notice: {e}")
 
@@ -97,8 +93,6 @@ class AcousticBiometricEngine:
             if mean_contrast > 28.0 and contrast_std < 10.0:
                 fake_evidence_points += 0.7
                 indicators.append("Rigid sub-band spectral contrast across formants.")
-            elif contrast_std > 12.0:
-                fake_evidence_points -= 0.5
         except Exception as e:
             logger.debug(f"Biometric spectral contrast notice: {e}")
 
@@ -117,8 +111,6 @@ class AcousticBiometricEngine:
                 if min_rms < 0.00025:
                     fake_evidence_points += 0.8
                     indicators.append("Synthetic digital noise floor detected in pause intervals.")
-                elif min_rms > 0.002:
-                    fake_evidence_points -= 0.6  # Natural room ambient air floor
         except Exception as e:
             logger.debug(f"Biometric noise floor notice: {e}")
 
