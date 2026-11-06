@@ -18,6 +18,7 @@ router = APIRouter(tags=["Voice Analysis"])
 
 @router.post("/analyze-file", response_model=AnalysisResultResponse)
 async def analyze_file(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="Audio file in WAV, MP3, FLAC, or OGG format"),
     custom_file_name: Optional[str] = Form(None, description="Optional custom display file name"),
     is_caller_unknown: bool = Form(False, description="Whether caller is unverified"),
@@ -25,7 +26,6 @@ async def analyze_file(
     urgency_flag: bool = Form(False, description="Whether urgency/pressure was applied"),
     mode: str = Form("upload", description="'upload', 'record', or 'live_call'"),
     username: Optional[str] = Form(None, description="Optional username of investigator/user"),
-    background_tasks: BackgroundTasks,
     user: dict = Depends(verify_token)
 ):
     """
