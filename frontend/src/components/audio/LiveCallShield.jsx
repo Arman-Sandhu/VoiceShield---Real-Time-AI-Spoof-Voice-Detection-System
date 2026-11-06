@@ -159,8 +159,9 @@ export default function LiveCallShield() {
         audio: {
           channelCount: 1,
           sampleRate: 16000,
-          echoCancellation: true,
-          noiseSuppression: true
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
         }
       });
 
@@ -168,7 +169,12 @@ export default function LiveCallShield() {
       setAudioStream(stream);
 
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      const audioCtx = new AudioCtx({ sampleRate: 16000 });
+      let audioCtx;
+      try {
+        audioCtx = new AudioCtx({ sampleRate: 16000 });
+      } catch (e) {
+        audioCtx = new AudioCtx();
+      }
       audioContextRef.current = audioCtx;
 
       const source = audioCtx.createMediaStreamSource(stream);
@@ -189,8 +195,11 @@ export default function LiveCallShield() {
         }
       };
 
+      const muteGain = audioCtx.createGain();
+      muteGain.gain.value = 0;
       source.connect(processor);
-      processor.connect(audioCtx.destination);
+      processor.connect(muteGain);
+      muteGain.connect(audioCtx.destination);
 
       setIsActive(true);
       setCallDuration(0);

@@ -51,20 +51,29 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
     recordedSamplesRef.current = [];
 
     try {
+      // Capture clean, unprocessed raw acoustic audio without destructive DSP filtering.
+      // Disabling echoCancellation, noiseSuppression, and autoGainControl preserves high-frequency vocoder
+      // phase harmonics and micro-tremors essential for Wav2Vec2 deepfake detection.
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
         }
       });
 
       mediaStreamRef.current = stream;
       setAudioStream(stream);
 
-      // Setup Web Audio API pipeline using hardware native sample rate
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      const audioCtx = new AudioContext();
+      // Setup Web Audio API pipeline with preferred 16kHz sample rate
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      let audioCtx;
+      try {
+        audioCtx = new AudioCtx({ sampleRate: 16000 });
+      } catch (e) {
+        audioCtx = new AudioCtx();
+      }
       audioContextRef.current = audioCtx;
       sampleRateRef.current = audioCtx.sampleRate;
 
@@ -79,8 +88,13 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
         recordedSamplesRef.current.push(new Float32Array(inputData));
       };
 
+      // Connect through a muted gain node to prevent speaker feedback / howling suppression
+      // while keeping the Web Audio processing graph active across all browser engines.
+      const muteGain = audioCtx.createGain();
+      muteGain.gain.value = 0;
       source.connect(processor);
-      processor.connect(audioCtx.destination);
+      processor.connect(muteGain);
+      muteGain.connect(audioCtx.destination);
 
       setIsRecording(true);
     } catch (err) {

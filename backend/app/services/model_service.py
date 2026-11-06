@@ -134,7 +134,7 @@ class DeepfakeModelService:
             }
 
         try:
-            temperature = 2.4
+            temperature = 1.0
             window_samples = int(3.0 * self.sampling_rate)
             stride_samples = int(1.0 * self.sampling_rate)
 
@@ -146,9 +146,12 @@ class DeepfakeModelService:
                     return_tensors="pt"
                 )
                 input_values = inputs.input_values.to(self.device)
+                attn_mask = getattr(inputs, "attention_mask", None)
+                if attn_mask is not None:
+                    attn_mask = attn_mask.to(self.device)
 
                 with torch.no_grad():
-                    outputs = self.model(input_values)
+                    outputs = self.model(input_values, attention_mask=attn_mask)
                     logits = outputs.logits.squeeze()
                     scaled_logits = logits / temperature
                     probs = torch.softmax(scaled_logits, dim=-1).cpu().tolist()
@@ -189,24 +192,32 @@ class DeepfakeModelService:
                     padding=True
                 )
                 input_values = inputs.input_values.to(self.device)
+                attn_mask = getattr(inputs, "attention_mask", None)
+                if attn_mask is not None:
+                    attn_mask = attn_mask.to(self.device)
 
                 with torch.no_grad():
-                    outputs = self.model(input_values)
+                    outputs = self.model(input_values, attention_mask=attn_mask)
                     logits = outputs.logits
                     probs = torch.softmax(logits / temperature, dim=-1)
                     chunk_fakes = probs[:, self.fake_idx].cpu().numpy()
 
-                weights = np.array(chunk_rms) / sum(chunk_rms)
-                weighted_mean_fake = float(np.sum(chunk_fakes * weights))
-                peak_fake = float(np.max(chunk_fakes))
+                # Calibrated aggregation: focus on high-confidence active speech windows
+                if len(chunk_fakes) == 1:
+                    effective_fake_prob = float(chunk_fakes[0])
+                else:
+                    sorted_fakes = np.sort(chunk_fakes)
+                    peak_fake = float(sorted_fakes[-1])
+                    k = max(1, min(len(sorted_fakes), (len(sorted_fakes) + 1) // 2))
+                    top_k_mean = float(np.mean(sorted_fakes[-k:]))
+                    # 70% peak burst + 30% top active speech windows
+                    effective_fake_prob = float(0.70 * peak_fake + 0.30 * top_k_mean)
 
-                # Calibrated aggregation: 50% peak burst + 50% active speech energy-weighted mean
-                effective_fake_prob = float(0.5 * peak_fake + 0.5 * weighted_mean_fake)
                 raw_fake_prob = effective_fake_prob
 
                 logger.info(
                     f"Temporal sliding window aggregation: windows={len(chunks)}, peak_fake={peak_fake:.4f}, "
-                    f"weighted_mean={weighted_mean_fake:.4f}, effective_fake={effective_fake_prob:.4f}"
+                    f"effective_fake={effective_fake_prob:.4f}"
                 )
 
             # Strict Binary Classification driven purely by deep learning model
