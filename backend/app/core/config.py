@@ -14,7 +14,7 @@ else:
 
 class Settings:
     PROJECT_NAME: str = "VoiceShield API"
-    VERSION: str = "2.0.0"
+    VERSION: str = "2.0.1"
     API_V1_PREFIX: str = "/api/v1"
     
     # ML Model Configuration
