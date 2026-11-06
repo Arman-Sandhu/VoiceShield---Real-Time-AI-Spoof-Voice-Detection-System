@@ -8,7 +8,6 @@ import api from './services/api';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
-import TechLoader from './components/ui/TechLoader';
 
 // Lazy-loaded routes for optimal initial bundle size and mobile performance
 const Landing = lazy(() => import('./pages/Landing'));
@@ -19,32 +18,53 @@ const History = lazy(() => import('./pages/History'));
 
 function App() {
   const [user, setUser] = useState(null);
-  const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState(() => {
+    try {
+      return localStorage.getItem('voiceshield_username') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [authReady, setAuthReady] = useState(false);
 
-  const fetchUserProfile = async (currentUser) => {
+  const fetchUserProfile = (currentUser) => {
     if (!currentUser) {
       setUser(null);
       setUsername('');
+      try {
+        localStorage.removeItem('voiceshield_username');
+      } catch {}
       return;
     }
     setUser(currentUser);
-    let resolvedName = currentUser.displayName || '';
-    try {
-      const res = await api.get('/user/profile');
-      if (res.data?.username && res.data.username.trim()) {
-        resolvedName = res.data.username.trim();
-      }
-    } catch (err) {
-      console.warn('Could not fetch user profile from backend:', err);
+    const initialName = currentUser.displayName || '';
+    if (initialName) {
+      setUsername(initialName);
+      try {
+        localStorage.setItem('voiceshield_username', initialName);
+      } catch {}
     }
-    setUsername(resolvedName);
+
+    // Synchronize custom username from backend in the background without blocking render or reload
+    api.get('/user/profile')
+      .then((res) => {
+        if (res.data?.username && res.data.username.trim()) {
+          const customName = res.data.username.trim();
+          setUsername(customName);
+          try {
+            localStorage.setItem('voiceshield_username', customName);
+          } catch {}
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not fetch user profile from backend:', err);
+      });
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      await fetchUserProfile(currentUser);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      fetchUserProfile(currentUser);
+      setAuthReady(true);
     });
 
     // Native Android Back Button navigation handler
@@ -76,16 +96,15 @@ function App() {
         await updateProfile(auth.currentUser, { displayName: clean });
       }
       setUsername(clean);
+      try {
+        localStorage.setItem('voiceshield_username', clean);
+      } catch {}
       return clean;
     } catch (err) {
       console.error('Failed to update username:', err);
       throw err;
     }
   };
-
-  if (loading) {
-    return <TechLoader text="Initializing VoiceShield Core..." />;
-  }
 
   return (
     <Router>
@@ -95,37 +114,81 @@ function App() {
 
         {/* Main Content Area (With responsive bottom spacing for mobile bottom bar) */}
         <main className="flex-1 w-full flex flex-col pb-16 md:pb-0">
-          <Suspense fallback={<TechLoader text="Loading VoiceShield..." />}>
+          <Suspense
+            fallback={
+              <div className="flex-1 min-h-[50vh] flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-[#00f5d4]/40 border-t-[#00f5d4] rounded-full animate-spin" />
+              </div>
+            }
+          >
             <Routes>
-              {/* Public Landing Page */}
+              {/* Public Landing Page - Renders instantly */}
               <Route path="/" element={<Landing user={user} />} />
 
               {/* Authentication */}
               <Route
                 path="/login"
-                element={!user ? <Login onLoginSuccess={(name) => { if (name) setUsername(name); }} /> : <Navigate to="/dashboard" replace />}
+                element={
+                  !authReady ? (
+                    <div className="flex-1 min-h-[50vh]" />
+                  ) : !user ? (
+                    <Login onLoginSuccess={(name) => { if (name) setUsername(name); }} />
+                  ) : (
+                    <Navigate to="/dashboard" replace />
+                  )
+                }
               />
 
               {/* Protected Workspace Pages */}
               <Route
                 path="/dashboard"
-                element={user ? <Dashboard user={user} username={username} /> : <Navigate to="/login" replace />}
+                element={
+                  !authReady ? (
+                    <div className="flex-1 min-h-[50vh]" />
+                  ) : user ? (
+                    <Dashboard user={user} username={username} />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
               />
 
               <Route
                 path="/analyze"
-                element={user ? <VoiceAnalysis user={user} username={username} /> : <Navigate to="/login" replace />}
+                element={
+                  !authReady ? (
+                    <div className="flex-1 min-h-[50vh]" />
+                  ) : user ? (
+                    <VoiceAnalysis user={user} username={username} />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
               />
 
               <Route
                 path="/history"
-                element={user ? <History user={user} username={username} /> : <Navigate to="/login" replace />}
+                element={
+                  !authReady ? (
+                    <div className="flex-1 min-h-[50vh]" />
+                  ) : user ? (
+                    <History user={user} username={username} />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
               />
 
               {/* Fallback */}
               <Route
                 path="*"
-                element={<Navigate to={user ? "/dashboard" : "/"} replace />}
+                element={
+                  !authReady ? (
+                    <div className="flex-1 min-h-[50vh]" />
+                  ) : (
+                    <Navigate to={user ? "/dashboard" : "/"} replace />
+                  )
+                }
               />
             </Routes>
           </Suspense>
