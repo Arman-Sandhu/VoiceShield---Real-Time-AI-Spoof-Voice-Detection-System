@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
@@ -25,6 +27,32 @@ export default function Login({ onLoginSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
+
+  // Automatically resolve redirect results when returning from full-page Google Auth
+  useEffect(() => {
+    let active = true;
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (!active || !result || !result.user) return;
+        const cleanUsername = result.user.displayName || result.user.email?.split('@')[0] || '';
+        if (cleanUsername) {
+          try {
+            await api.post('/user/username', { username: cleanUsername });
+          } catch (syncErr) {
+            console.warn('Redirect sign-in username sync notice:', syncErr);
+          }
+          if (onLoginSuccess) onLoginSuccess(cleanUsername);
+        }
+      })
+      .catch((err) => {
+        if (!active) return;
+        console.error('Redirect result error:', err);
+        if (err.code !== 'auth/popup-closed-by-user') {
+          setError(err.message || 'Google sign-in was interrupted. Please try again.');
+        }
+      });
+    return () => { active = false; };
+  }, [onLoginSuccess]);
 
   const handleEmailAuth = async (e) => {
     e.preventDefault();
@@ -119,18 +147,35 @@ export default function Login({ onLoginSuccess }) {
       }
     } catch (err) {
       console.error('Google Auth error:', err);
-      if (err.code !== 'auth/popup-closed-by-user') {
+      if (err.code === 'auth/popup-blocked') {
+        // Browser or extension blocked the popup window: smoothly fall back to redirect sign-in!
+        setSuccessMsg('Popup blocked by browser — redirecting to secure Google sign-in...');
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectErr) {
+          console.error('Google redirect fallback failed:', redirectErr);
+          setError('Could not open Google sign-in. Please use Email & Password below.');
+          setLoading(false);
+        }
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        setLoading(false);
+      } else {
         const msg = err.message || '';
-        if (err.code === 'auth/popup-blocked') {
-          setError('Browser popup blocked! Click the small popup icon at the right edge of your browser address bar to "Always allow popups", then click Sign in again — or use Email & Password below.');
-        } else if (msg.includes('missing initial state') || err.code === 'auth/operation-not-supported-in-this-environment') {
-          setError('Google Sign-in inside an Android app wrapper is blocked by Google security policies. Please use Email & Password below, or sign in via Google Chrome browser.');
+        if (msg.includes('missing initial state') || err.code === 'auth/operation-not-supported-in-this-environment') {
+          setSuccessMsg('Redirecting to Google sign-in...');
+          try {
+            await signInWithRedirect(auth, googleProvider);
+            return;
+          } catch (rErr) {
+            setError('Google sign-in is not supported in this environment. Please use Email & Password below.');
+            setLoading(false);
+          }
         } else {
           setError(msg || 'Google sign-in failed. Please try again.');
+          setLoading(false);
         }
       }
-    } finally {
-      setLoading(false);
     }
   };
 
