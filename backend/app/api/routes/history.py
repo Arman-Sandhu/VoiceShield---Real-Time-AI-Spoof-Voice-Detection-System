@@ -55,7 +55,7 @@ def get_analysis_by_id(event_id: str, user: dict = Depends(verify_token)):
 @router.post("/analysis/{event_id}/flag", response_model=FlagToggleResponse)
 def toggle_analysis_flag(
     event_id: str,
-    background_tasks: BackgroundTasks = BackgroundTasks(),
+    background_tasks: BackgroundTasks,
     user: dict = Depends(verify_token)
 ):
     """

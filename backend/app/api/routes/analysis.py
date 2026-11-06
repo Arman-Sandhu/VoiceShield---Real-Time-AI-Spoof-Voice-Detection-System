@@ -25,7 +25,7 @@ async def analyze_file(
     urgency_flag: bool = Form(False, description="Whether urgency/pressure was applied"),
     mode: str = Form("upload", description="'upload', 'record', or 'live_call'"),
     username: Optional[str] = Form(None, description="Optional username of investigator/user"),
-    background_tasks: BackgroundTasks = BackgroundTasks(),
+    background_tasks: BackgroundTasks,
     user: dict = Depends(verify_token)
 ):
     """
