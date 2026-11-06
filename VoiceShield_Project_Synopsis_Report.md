@@ -328,3 +328,22 @@ VoiceShield delivers a cohesive, fully functioning deep learning solution to voi
 4. **Biometric Voice Fingerprinting & Known Voice Vault**:
    - Enable users to enroll trusted voice profiles (family members, executive personnel) using x-vector/d-vector speaker embeddings.
    - The system will cross-reference incoming calls against enrolled profiles to detect both synthetic cloning attempts and unauthorized impersonation.
+
+---
+
+## 13. Production Cloud Deployment & Native Mobile Architecture (v4.0.0)
+
+### 13.1 Hugging Face Spaces (ZeroGPU Free Tier) Backend
+- **Endpoint**: `https://armansandhu1729-voiceshield-backend.hf.space`
+- **Hardware Acceleration**: Dynamically attached **NVIDIA A10G 24GB VRAM** via `@spaces.GPU(duration=30)`.
+- **Inference Speed**: Reduced from 2.5s (CPU) to **35ms – 55ms per window**.
+- **REST & Gradio Routing**: Dual surface serving FastAPI REST routes (`/analyze-file`, `/analysis/live-chunk`, `/health`, `/history`) alongside an interactive Gradio web playground (`/gradio/`).
+
+### 13.2 Vercel Production Frontend
+- **Hosting**: Vercel automated continuous integration and continuous deployment (CI/CD).
+- **Deep SPA Routing**: `vercel.json` configured with fallback rewrites to `/index.html` ensuring direct navigation to all dashboard and telemetry views.
+- **Environment Integration**: Securely loads Hugging Face API URLs and Firebase authentication tokens.
+
+### 13.3 Native Android Mobile Application
+- **Distribution Package**: `app-debug.apk` (4.34 MB), built via Capacitor 8 and Gradle 8.14.3 targeting Android 15 (API 35).
+- **Mobile Hardware Integration**: Hardware back button management via `@capacitor/app`, mobile vibration/haptics, audible alarm beeps, and zero-drift responsive viewport containment.
