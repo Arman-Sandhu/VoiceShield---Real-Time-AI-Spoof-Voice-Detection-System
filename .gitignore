@@ -43,6 +43,10 @@ voiceshield.db
 firebase-admin.json
 *.pem
 
+# Hugging Face deployment working dirs
+hf_space_repo/
+hf_space_deploy/
+
 # Large Model Weights & Checkpoints (>100MB, tracked on Hugging Face)
 backend/models/
 models/
