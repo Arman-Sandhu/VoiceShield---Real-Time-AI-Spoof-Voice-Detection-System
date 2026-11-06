@@ -26,7 +26,6 @@ function App() {
     if (!currentUser) {
       setUser(null);
       setUsername('');
-      setLoading(false);
       return;
     }
     setUser(currentUser);
@@ -40,12 +39,20 @@ function App() {
       console.warn('Could not fetch user profile from backend:', err);
     }
     setUsername(resolvedName);
-    setLoading(false);
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      fetchUserProfile(currentUser);
+    // Record launch time to ensure smooth 1-second ripple logo branding splash
+    const launchTimestamp = Date.now();
+
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      await fetchUserProfile(currentUser);
+      const elapsed = Date.now() - launchTimestamp;
+      const minDisplayTimeMs = 1000; // 1-second high-tech ripple logo splash
+      const delay = Math.max(0, minDisplayTimeMs - elapsed);
+      setTimeout(() => {
+        setLoading(false);
+      }, delay);
     });
 
     // Native Android Back Button navigation handler

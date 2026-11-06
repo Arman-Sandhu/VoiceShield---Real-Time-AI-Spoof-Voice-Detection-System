@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Download, CheckCircle2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, Volume1, VolumeX, Download, CheckCircle2 } from 'lucide-react';
 import Button from '../ui/Button';
 import AudioWaveformVisualizer from './AudioWaveformVisualizer';
 
@@ -18,6 +18,7 @@ export default function AudioPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(1.0);
   const audioRef = useRef(null);
   const [sourceUrl, setSourceUrl] = useState(null);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
@@ -113,8 +114,23 @@ export default function AudioPlayer({
 
   const toggleMute = () => {
     if (!audioRef.current) return;
-    audioRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
+    const newMuted = !isMuted;
+    audioRef.current.muted = newMuted;
+    setIsMuted(newMuted);
+  };
+
+  const handleVolumeChange = (e) => {
+    if (!audioRef.current) return;
+    const newVol = parseFloat(e.target.value);
+    audioRef.current.volume = newVol;
+    setVolume(newVol);
+    if (newVol === 0) {
+      audioRef.current.muted = true;
+      setIsMuted(true);
+    } else if (isMuted) {
+      audioRef.current.muted = false;
+      setIsMuted(false);
+    }
   };
 
   const formatTime = (seconds) => {
@@ -213,14 +229,36 @@ export default function AudioPlayer({
             Restart
           </Button>
 
-          <button
-            type="button"
-            onClick={toggleMute}
-            className="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
-            title={isMuted ? 'Unmute' : 'Mute'}
-          >
-            {isMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-          </button>
+          {/* Volume Control Button & Slider */}
+          <div className="flex items-center gap-1.5 bg-[#0f1724] border border-white/[0.06] rounded-xl px-2 py-1">
+            <button
+              type="button"
+              onClick={toggleMute}
+              className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5"
+              title={isMuted ? 'Unmute' : 'Mute'}
+            >
+              {isMuted || volume === 0 ? (
+                <VolumeX size={16} className="text-rose-400" />
+              ) : volume < 0.5 ? (
+                <Volume1 size={16} className="text-[#00f5d4]" />
+              ) : (
+                <Volume2 size={16} className="text-[#00f5d4]" />
+              )}
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={isMuted ? 0 : volume}
+              onChange={handleVolumeChange}
+              className="w-14 sm:w-20 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#00f5d4]"
+              title={`Volume: ${Math.round((isMuted ? 0 : volume) * 100)}%`}
+            />
+            <span className="text-[10px] font-mono text-slate-400 w-7 text-right">
+              {Math.round((isMuted ? 0 : volume) * 100)}%
+            </span>
+          </div>
         </div>
 
         {/* Download Button */}
