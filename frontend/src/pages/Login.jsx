@@ -121,7 +121,9 @@ export default function Login({ onLoginSuccess }) {
       console.error('Google Auth error:', err);
       if (err.code !== 'auth/popup-closed-by-user') {
         const msg = err.message || '';
-        if (msg.includes('missing initial state') || err.code === 'auth/operation-not-supported-in-this-environment') {
+        if (err.code === 'auth/popup-blocked') {
+          setError('Browser popup blocked! Click the small popup icon at the right edge of your browser address bar to "Always allow popups", then click Sign in again — or use Email & Password below.');
+        } else if (msg.includes('missing initial state') || err.code === 'auth/operation-not-supported-in-this-environment') {
           setError('Google Sign-in inside an Android app wrapper is blocked by Google security policies. Please use Email & Password below, or sign in via Google Chrome browser.');
         } else {
           setError(msg || 'Google sign-in failed. Please try again.');
