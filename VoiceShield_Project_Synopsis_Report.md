@@ -334,6 +334,10 @@ VoiceShield delivers a cohesive, fully functioning deep learning solution to voi
 ## 13. Production Cloud Deployment & Native Mobile Architecture (v4.0.0)
 
 ### 13.1 Hugging Face Spaces (ZeroGPU Free Tier) Backend
+
+> **Why Hugging Face Spaces over Render:**  
+> Standard cloud PaaS services like Render Free Tier enforce a rigid 512 MB RAM limit with zero GPU access. Because VoiceShield's cross-lingual Wav2Vec 2.0 XLSR-53 model (`1.26 GB` weights) requires ~1.4 GB memory to initialize, deploying on Render triggered fatal out-of-memory crashes (`Out of memory (used over 512Mi)`). Pivoting to **Hugging Face Spaces ZeroGPU** resolved this by providing **16 GB of system RAM** and free on-demand **NVIDIA A10G (24 GB VRAM)** acceleration, slashing real-time chunk inference latency from 2,500ms down to **under 45ms** while hosting both the FastAPI REST endpoints and an interactive Gradio web playground (`/gradio/`).
+
 - **Endpoint**: `https://armansandhu1729-voiceshield-backend.hf.space`
 - **Hardware Acceleration**: Dynamically attached **NVIDIA A10G 24GB VRAM** via `@spaces.GPU(duration=30)`.
 - **Inference Speed**: Reduced from 2.5s (CPU) to **35ms – 55ms per window**.
