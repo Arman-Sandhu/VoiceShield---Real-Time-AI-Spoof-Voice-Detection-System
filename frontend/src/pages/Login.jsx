@@ -48,7 +48,12 @@ export default function Login({ onLoginSuccess }) {
         if (!active) return;
         console.error('Redirect result error:', err);
         if (err.code !== 'auth/popup-closed-by-user') {
-          setError(err.message || 'Google sign-in was interrupted. Please try again.');
+          const msg = err.message || '';
+          if (err.code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
+            setError('Browser privacy isolation or Incognito mode blocked the sign-in redirect. Please open VoiceShield in a regular (non-Incognito) browser window, or allow popups for this site.');
+          } else {
+            setError(msg || 'Google sign-in was interrupted. Please try again.');
+          }
         }
       });
     return () => { active = false; };
@@ -148,33 +153,22 @@ export default function Login({ onLoginSuccess }) {
     } catch (err) {
       console.error('Google Auth error:', err);
       if (err.code === 'auth/popup-blocked') {
-        // Browser or extension blocked the popup window: smoothly fall back to redirect sign-in!
-        setSuccessMsg('Popup blocked by browser — redirecting to secure Google sign-in...');
-        try {
-          await signInWithRedirect(auth, googleProvider);
-          return;
-        } catch (redirectErr) {
-          console.error('Google redirect fallback failed:', redirectErr);
-          setError('Could not open Google sign-in. Please use Email & Password below.');
-          setLoading(false);
-        }
+        setError(
+          'Google Sign-In popup was blocked by browser privacy settings! Click the pop-up blocked icon at the right edge of your address bar to "Always allow popups", or open VoiceShield in a regular (non-Incognito) window to select your Google ID.'
+        );
+        setLoading(false);
       } else if (err.code === 'auth/popup-closed-by-user') {
         setLoading(false);
       } else {
         const msg = err.message || '';
-        if (msg.includes('missing initial state') || err.code === 'auth/operation-not-supported-in-this-environment') {
-          setSuccessMsg('Redirecting to Google sign-in...');
-          try {
-            await signInWithRedirect(auth, googleProvider);
-            return;
-          } catch (rErr) {
-            setError('Google sign-in is not supported in this environment. Please use Email & Password below.');
-            setLoading(false);
-          }
+        if (msg.includes('missing initial state')) {
+          setError('Browser storage isolation blocked the redirect. Please open VoiceShield in a regular (non-Incognito) browser window.');
+        } else if (msg.includes('missing initial state') || err.code === 'auth/operation-not-supported-in-this-environment') {
+          setError('Google Sign-in is restricted in this environment. Please open in Google Chrome or use Email & Password below.');
         } else {
           setError(msg || 'Google sign-in failed. Please try again.');
-          setLoading(false);
         }
+        setLoading(false);
       }
     }
   };
