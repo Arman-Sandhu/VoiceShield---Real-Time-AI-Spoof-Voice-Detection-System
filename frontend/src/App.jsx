@@ -1,4 +1,4 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
@@ -8,14 +8,12 @@ import api from './services/api';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import VoiceAnalysis from './pages/VoiceAnalysis';
+import History from './pages/History';
 import TechLoader from './components/ui/TechLoader';
-
-// Lazy-loaded routes for optimal initial bundle size and mobile performance
-const Landing = lazy(() => import('./pages/Landing'));
-const Login = lazy(() => import('./pages/Login'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const VoiceAnalysis = lazy(() => import('./pages/VoiceAnalysis'));
-const History = lazy(() => import('./pages/History'));
 
 function App() {
   const [user, setUser] = useState(null);
@@ -26,6 +24,7 @@ function App() {
     if (!currentUser) {
       setUser(null);
       setUsername('');
+      setLoading(false);
       return;
     }
     setUser(currentUser);
@@ -39,12 +38,12 @@ function App() {
       console.warn('Could not fetch user profile from backend:', err);
     }
     setUsername(resolvedName);
+    setLoading(false);
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      await fetchUserProfile(currentUser);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      fetchUserProfile(currentUser);
     });
 
     // Native Android Back Button navigation handler
@@ -95,46 +94,38 @@ function App() {
 
         {/* Main Content Area (With responsive bottom spacing for mobile bottom bar) */}
         <main className="flex-1 w-full flex flex-col pb-16 md:pb-0">
-          <Suspense
-            fallback={
-              <div className="flex-1 min-h-[50vh] flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-[#00f5d4]/40 border-t-[#00f5d4] rounded-full animate-spin" />
-              </div>
-            }
-          >
-            <Routes>
-              {/* Public Landing Page */}
-              <Route path="/" element={<Landing user={user} />} />
+          <Routes>
+            {/* Public Landing Page */}
+            <Route path="/" element={<Landing user={user} />} />
 
-              {/* Authentication */}
-              <Route
-                path="/login"
-                element={!user ? <Login onLoginSuccess={(name) => { if (name) setUsername(name); }} /> : <Navigate to="/dashboard" replace />}
-              />
+            {/* Authentication */}
+            <Route
+              path="/login"
+              element={!user ? <Login onLoginSuccess={(name) => { if (name) setUsername(name); }} /> : <Navigate to="/dashboard" replace />}
+            />
 
-              {/* Protected Workspace Pages */}
-              <Route
-                path="/dashboard"
-                element={user ? <Dashboard user={user} username={username} /> : <Navigate to="/login" replace />}
-              />
+            {/* Protected Workspace Pages */}
+            <Route
+              path="/dashboard"
+              element={user ? <Dashboard user={user} username={username} /> : <Navigate to="/login" replace />}
+            />
 
-              <Route
-                path="/analyze"
-                element={user ? <VoiceAnalysis user={user} username={username} /> : <Navigate to="/login" replace />}
-              />
+            <Route
+              path="/analyze"
+              element={user ? <VoiceAnalysis user={user} username={username} /> : <Navigate to="/login" replace />}
+            />
 
-              <Route
-                path="/history"
-                element={user ? <History user={user} username={username} /> : <Navigate to="/login" replace />}
-              />
+            <Route
+              path="/history"
+              element={user ? <History user={user} username={username} /> : <Navigate to="/login" replace />}
+            />
 
-              {/* Fallback */}
-              <Route
-                path="*"
-                element={<Navigate to={user ? "/dashboard" : "/"} replace />}
-              />
-            </Routes>
-          </Suspense>
+            {/* Fallback */}
+            <Route
+              path="*"
+              element={<Navigate to={user ? "/dashboard" : "/"} replace />}
+            />
+          </Routes>
         </main>
 
         {/* Global Footer */}
