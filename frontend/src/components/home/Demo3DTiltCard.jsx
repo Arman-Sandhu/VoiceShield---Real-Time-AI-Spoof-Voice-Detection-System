@@ -9,7 +9,6 @@ import {
   Pause,
   ArrowRight,
   Sparkles,
-  Layers,
   RotateCw,
   CheckCircle2,
   FileAudio
@@ -21,7 +20,7 @@ import Button from '../ui/Button';
 export default function Demo3DTiltCard({ user }) {
   const cardRef = useRef(null);
 
-  // 3D Tilt Mouse tracking state
+  // 3D Tilt Mouse tracking state (reduced angles for maximum text clarity)
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
   const [glarePos, setGlarePos] = useState({ x: 50, y: 50 });
@@ -31,7 +30,7 @@ export default function Demo3DTiltCard({ user }) {
   const [activeStep, setActiveStep] = useState(1);
   const [isPlayingAudio, setIsPlayingAudio] = useState(true);
 
-  // Auto-play demo step rotation when user is not actively clicking
+  // Auto-play demo step rotation
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
   useEffect(() => {
@@ -51,26 +50,21 @@ export default function Demo3DTiltCard({ user }) {
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    // Normalizing between -1 and 1
     const normX = (mouseX - centerX) / centerX;
     const normY = (mouseY - centerY) / centerY;
 
-    // Maximum tilt angles in degrees
-    const maxTilt = 12;
+    // Controlled tilt angles (7 degrees) to preserve pixel-perfect text clarity
+    const maxTilt = 7;
     setRotateX(-normY * maxTilt);
     setRotateY(normX * maxTilt);
 
-    // Glare coordinates (in percent)
     setGlarePos({
       x: (mouseX / rect.width) * 100,
       y: (mouseY / rect.height) * 100
     });
   };
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-
+  const handleMouseEnter = () => setIsHovered(true);
   const handleMouseLeave = () => {
     setIsHovered(false);
     setRotateX(0);
@@ -109,7 +103,7 @@ export default function Demo3DTiltCard({ user }) {
   ];
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 my-10 sm:my-16 [perspective:1400px] overflow-hidden">
+    <div className="w-full max-w-3xl mx-auto px-3 sm:px-4 my-6 sm:my-8 [perspective:1200px]">
       {/* Outer 3D Tilt Card Container */}
       <div
         ref={cardRef}
@@ -117,78 +111,71 @@ export default function Demo3DTiltCard({ user }) {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         style={{
-          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg) ${
-            isHovered ? 'scale3d(1.015, 1.015, 1.015)' : 'scale3d(1, 1, 1)'
-          }`,
-          transformStyle: 'preserve-3d',
+          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
           transition: isHovered
-            ? 'transform 0.12s cubic-bezier(0.2, 0, 0.2, 1)'
-            : 'transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)'
+            ? 'transform 0.08s ease-out'
+            : 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
+          WebkitFontSmoothing: 'antialiased',
+          backfaceVisibility: 'hidden'
         }}
-        className="relative rounded-3xl p-1 bg-gradient-to-br from-[#00d4ff]/35 via-[#00d4ff]/10 to-[#a855f7]/35 shadow-[0_25px_60px_-15px_rgba(0,212,255,0.2)] cursor-pointer group"
+        className="relative rounded-2xl p-[1px] bg-gradient-to-br from-[#00d4ff]/40 via-white/10 to-[#a855f7]/40 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.8),0_0_20px_rgba(0,212,255,0.15)] cursor-pointer group"
       >
-        {/* Dynamic Specular Holographic Glare Overlay (Subtle Cyber Sheen, No Harsh White Wash) */}
+        {/* Subtle Outer Border Glare */}
         <div
-          className="absolute inset-0 rounded-3xl pointer-events-none transition-opacity duration-300 z-10"
+          className="absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-200"
           style={{
-            opacity: isHovered ? 1 : 0,
-            background: `radial-gradient(circle 380px at ${glarePos.x}% ${glarePos.y}%, rgba(0, 212, 255, 0.08), rgba(168, 85, 247, 0.04) 45%, transparent 70%)`
+            opacity: isHovered ? 0.8 : 0,
+            background: `radial-gradient(circle 260px at ${glarePos.x}% ${glarePos.y}%, rgba(0, 212, 255, 0.15), transparent 70%)`
           }}
         />
 
-        {/* Card Body */}
-        <div className="relative bg-[#0b0d14]/95 backdrop-blur-2xl rounded-[22px] p-4 sm:p-10 border border-white/[0.08] overflow-hidden flex flex-col gap-6 [transform-style:preserve-3d]">
-          {/* Top Header Layer [Depth +30px] */}
-          <div
-            style={{ transform: 'translateZ(30px)' }}
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6"
-          >
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="cyan" size="sm" icon={Sparkles}>
-                  Interactive 3D Walkthrough
-                </Badge>
-                <span className="hidden sm:inline text-xs font-mono text-slate-500">
-                  | Hover cursor anywhere to tilt 3D perspective
-                </span>
+        {/* Card Body - Deep Solid Background for Razor-Sharp Text Contrast */}
+        <div className="relative bg-[#0c101a] rounded-[15px] p-3.5 sm:p-5 border border-white/10 flex flex-col gap-3.5 overflow-hidden text-slate-100">
+          {/* Top macOS-style Window Bar */}
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <div className="flex items-center gap-3">
+              {/* 3 Mac Dots on Top Left */}
+              <div className="flex items-center gap-1.5" aria-label="Window controls">
+                <span className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/60 shadow-sm inline-block" />
+                <span className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/60 shadow-sm inline-block" />
+                <span className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]/60 shadow-sm inline-block" />
               </div>
-              <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
-                How VoiceShield Works in Real Action
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-                Experience the 4-step pipeline: from live acoustic sampling to VoiceShield neural
-                phoneme analysis and situational threat categorization.
-              </p>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono text-slate-400 font-semibold tracking-wider uppercase">
+                  VoiceShield Terminal
+                </span>
+                <Badge variant="cyan" size="sm" icon={Sparkles} className="py-0 px-2 text-[10px]">
+                  Interactive Demo
+                </Badge>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono transition-all border ${
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-mono transition-all border ${
                   isAutoPlaying
-                    ? 'bg-[#00d4ff]/20 text-[#00d4ff] border-[#00d4ff]/40 shadow-[0_0_15px_rgba(0,212,255,0.3)]'
+                    ? 'bg-[#00d4ff]/20 text-[#00d4ff] border-[#00d4ff]/40 shadow-[0_0_10px_rgba(0,212,255,0.25)]'
                     : 'bg-white/5 text-slate-400 border-white/10 hover:text-white'
                 }`}
-                title="Toggle automated progression"
+                title="Toggle automated tour"
               >
-                <RotateCw size={12} className={isAutoPlaying ? 'animate-spin' : ''} />
-                <span>{isAutoPlaying ? 'Auto Tour: ON' : 'Auto Tour: OFF'}</span>
+                <RotateCw size={10} className={isAutoPlaying ? 'animate-spin' : ''} />
+                <span>{isAutoPlaying ? 'Auto: ON' : 'Auto'}</span>
               </button>
 
               <Link to={user ? '/analyze' : '/login'}>
-                <Button variant="primary" size="sm" icon={ArrowRight}>
-                  Try It Live
+                <Button variant="primary" size="sm" icon={ArrowRight} className="py-1 px-2.5 text-xs h-7">
+                  Try Live
                 </Button>
               </Link>
             </div>
           </div>
 
-          {/* Interactive Step Navigator Tabs [Depth +45px] */}
-          <div
-            style={{ transform: 'translateZ(45px)' }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3"
-          >
+          {/* Interactive Step Tabs */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
             {steps.map((s) => {
               const Icon = s.icon;
               const isActive = activeStep === s.id;
@@ -200,27 +187,27 @@ export default function Demo3DTiltCard({ user }) {
                     setActiveStep(s.id);
                     setIsAutoPlaying(false);
                   }}
-                  className={`flex flex-col items-start p-3 sm:p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  className={`flex flex-col items-start p-2 sm:p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-[#00d4ff]/10 border-[#00d4ff]/60 shadow-[0_0_20px_rgba(0,212,255,0.2)] scale-[1.02]'
-                      : 'bg-white/[0.02] border-white/[0.06] hover:bg-cyan-500/5 hover:border-cyan-500/20 text-slate-400'
+                      ? 'bg-[#00d4ff]/15 border-[#00d4ff]/70 text-white shadow-[0_0_12px_rgba(0,212,255,0.2)]'
+                      : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] text-slate-400'
                   }`}
                 >
-                  <div className="flex items-center justify-between w-full mb-1">
+                  <div className="flex items-center justify-between w-full mb-0.5">
                     <span
-                      className={`text-xs font-mono font-bold ${
-                        isActive ? 'text-[#00d4ff]' : 'text-slate-400'
+                      className={`text-[11px] font-mono font-bold ${
+                        isActive ? 'text-[#00f5d4]' : 'text-slate-400'
                       }`}
                     >
                       {s.title}
                     </span>
                     <Icon
-                      size={15}
+                      size={13}
                       style={{ color: isActive ? s.color : '#94a3b8' }}
                       className={isActive ? 'scale-110 transition-transform' : ''}
                     />
                   </div>
-                  <span className="text-[11px] text-slate-300 font-sans truncate w-full">
+                  <span className="text-[10px] text-slate-300 font-sans truncate w-full">
                     {s.subtitle}
                   </span>
                 </button>
@@ -228,53 +215,50 @@ export default function Demo3DTiltCard({ user }) {
             })}
           </div>
 
-          {/* Dynamic Interactive Demo Display Area [Depth +60px] */}
-          <div
-            style={{ transform: 'translateZ(60px)' }}
-            className="bg-[#121622] rounded-2xl p-5 sm:p-7 border border-white/[0.08] min-h-[300px] flex flex-col justify-between relative shadow-inner"
-          >
+          {/* Dynamic Interactive Demo Display Area */}
+          <div className="bg-[#121724] rounded-xl p-3.5 sm:p-4 border border-white/[0.08] min-h-[210px] flex flex-col justify-between relative shadow-inner">
             <AnimatePresence mode="wait">
               {/* STEP 1: AUDIO CAPTURE / UPLOAD DEMO */}
               {activeStep === 1 && (
                 <motion.div
                   key="step-1"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-col gap-5 w-full"
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col gap-3 w-full"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-[#00d4ff]/10 text-[#00d4ff] flex items-center justify-center">
-                        <FileAudio size={18} />
+                      <div className="w-6 h-6 rounded-md bg-[#00d4ff]/10 text-[#00d4ff] flex items-center justify-center shrink-0">
+                        <FileAudio size={14} />
                       </div>
                       <div>
-                        <h4 className="text-sm sm:text-base font-bold text-white">
-                          Sample Audio Ingestion: Dual Recording & File Support
+                        <h4 className="text-xs sm:text-sm font-bold text-white">
+                          Sample Audio Ingestion: Dual Recording & File Upload
                         </h4>
-                        <span className="text-xs font-mono text-slate-400">
-                          Raw PCM Buffer Normalization | 16,000 Hz Mono Resampling
+                        <span className="text-[10px] font-mono text-slate-400">
+                          16,000 Hz Mono Resampling &bull; Raw PCM Buffer Normalization
                         </span>
                       </div>
                     </div>
-                    <Badge variant="cyan" size="sm">
-                      16.0 kHz WAV
+                    <Badge variant="cyan" size="sm" className="py-0 px-2 text-[10px] shrink-0">
+                      16 kHz WAV
                     </Badge>
                   </div>
 
                   {/* Audio Card Simulation */}
-                  <div className="p-4 rounded-xl bg-[#0a0d16] border border-white/10 flex flex-col gap-3">
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="text-white flex items-center gap-2 truncate">
-                        <FileAudio size={14} className="text-[#00d4ff] shrink-0" />
-                        <span className="truncate">ceo_urgent_fund_transfer_call.wav</span>
+                  <div className="p-3 rounded-lg bg-[#0a0e17] border border-white/10 flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-white flex items-center gap-1.5 truncate">
+                        <FileAudio size={13} className="text-[#00d4ff] shrink-0" />
+                        <span className="truncate">ceo_emergency_fund_transfer.wav</span>
                       </span>
                       <span className="text-slate-400 shrink-0">00:06.40</span>
                     </div>
 
                     {/* Animated Equalizer Waveform */}
-                    <div className="h-14 flex items-end justify-center gap-1.5 px-2 py-1 bg-[#121622] rounded-lg border border-white/5">
+                    <div className="h-10 flex items-end justify-center gap-1 px-2 py-1 bg-[#121622] rounded border border-white/5">
                       {[
                         20, 45, 60, 30, 80, 95, 40, 70, 85, 30, 65, 90, 75, 40, 85, 100, 65, 35,
                         90, 50, 75, 85, 30, 60, 95, 45, 70, 40
@@ -283,33 +267,31 @@ export default function Demo3DTiltCard({ user }) {
                           key={idx}
                           style={{
                             height: isPlayingAudio ? `${bar}%` : '20%',
-                            transition: 'height 0.25s ease'
+                            transition: 'height 0.2s ease'
                           }}
-                          className="flex-1 rounded-t bg-gradient-to-t from-[#00d4ff] to-[#a855f7] opacity-80"
+                          className="flex-1 rounded-t bg-gradient-to-t from-[#00d4ff] to-[#a855f7] opacity-85"
                         />
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center justify-between pt-0.5">
                       <button
                         type="button"
                         onClick={() => setIsPlayingAudio(!isPlayingAudio)}
-                        className="flex items-center gap-2 text-xs font-mono text-[#00d4ff] hover:text-white transition-colors"
+                        className="flex items-center gap-1.5 text-[11px] font-mono text-[#00f5d4] hover:text-white transition-colors"
                       >
-                        {isPlayingAudio ? <Pause size={14} /> : <Play size={14} />}
-                        <span>{isPlayingAudio ? 'Simulated Playback Active' : 'Paused Preview'}</span>
+                        {isPlayingAudio ? <Pause size={12} /> : <Play size={12} />}
+                        <span>{isPlayingAudio ? 'Playback Active' : 'Paused'}</span>
                       </button>
-                      <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
-                        <CheckCircle2 size={12} />
-                        Buffer Normalized & Silence Trimmed
+                      <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                        <CheckCircle2 size={11} />
+                        Buffer Normalized
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Users can either record live calls directly via high-fidelity in-browser microphone
-                    encoding or upload any suspicious audio file (WAV, MP3, FLAC, OGG). The pipeline
-                    automatically normalizes energy and downsamples to 16kHz for ML compatibility.
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Record live calls directly via in-browser microphone encoding or upload audio (WAV, MP3, FLAC, OGG). The pipeline automatically normalizes energy and downsamples for model inference.
                   </p>
                 </motion.div>
               )}
@@ -318,81 +300,71 @@ export default function Demo3DTiltCard({ user }) {
               {activeStep === 2 && (
                 <motion.div
                   key="step-2"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-col gap-4 w-full"
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col gap-2.5 w-full"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                        <AlertTriangle size={18} />
+                      <div className="w-6 h-6 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+                        <AlertTriangle size={14} />
                       </div>
                       <div>
-                        <h4 className="text-sm sm:text-base font-bold text-white">
-                          Situational Call Context & Social Engineering Assessment
+                        <h4 className="text-xs sm:text-sm font-bold text-white">
+                          Situational Call Context & Extortion Risk Assessment
                         </h4>
-                        <span className="text-xs font-mono text-slate-400">
-                          Acoustics + Human Psychology Fraud Factors
+                        <span className="text-[10px] font-mono text-slate-400">
+                          Acoustics combined with psychological fraud factors
                         </span>
                       </div>
                     </div>
-                    <Badge variant="purple" size="sm">
-                      Context Multipliers
+                    <Badge variant="purple" size="sm" className="py-0 px-2 text-[10px] shrink-0">
+                      Threat Multipliers
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="p-3.5 rounded-xl bg-[#0a0d16] border border-amber-500/30 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-mono text-white font-semibold">
-                          Caller Identity
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="p-2.5 rounded-lg bg-[#0a0e17] border border-amber-500/30 flex flex-col justify-between">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-mono text-white font-semibold">Caller Identity</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300">
                           UNVERIFIED
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 leading-normal">
-                        Incoming call from spoofed VoIP number or unverified caller claiming executive
-                        authority.
+                      <p className="text-[10px] text-slate-300 leading-tight">
+                        Spoofed VoIP number or unverified caller claiming executive authority.
                       </p>
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-[#0a0d16] border border-rose-500/30 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-mono text-white font-semibold">
-                          Urgency & Pressure
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300">
+                    <div className="p-2.5 rounded-lg bg-[#0a0e17] border border-rose-500/30 flex flex-col justify-between">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-mono text-white font-semibold">Urgency & Pressure</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300">
                           EXTREME
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 leading-normal">
-                        Severe time limits imposed: "Must transfer immediately, lives or deals are on
-                        the line."
+                      <p className="text-[10px] text-slate-300 leading-tight">
+                        Severe time limits imposed: "Must transfer immediately, deals on the line."
                       </p>
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-[#0a0d16] border border-rose-500/30 flex flex-col justify-between">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-mono text-white font-semibold">
-                          Sensitive Demands
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300">
-                          WIRE $50,000
+                    <div className="p-2.5 rounded-lg bg-[#0a0e17] border border-rose-500/30 flex flex-col justify-between">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-mono text-white font-semibold">Sensitive Demands</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300">
+                          WIRE FUNDS
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 leading-normal">
-                        Demands wire transfers, OTP authentication codes, or password credential resets.
+                      <p className="text-[10px] text-slate-300 leading-tight">
+                        Demands emergency wire transfers, OTP authentication codes, or password resets.
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Unlike naive acoustic-only tools, VoiceShield incorporates situational threat markers.
-                    An AI voice that demands emergency fund transfers is immediately escalated into high or
-                    critical alert states.
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Unlike naive acoustic-only tools, VoiceShield incorporates situational threat markers to escalate fraud alerts immediately when high-risk extortion patterns occur.
                   </p>
                 </motion.div>
               )}
@@ -401,72 +373,68 @@ export default function Demo3DTiltCard({ user }) {
               {activeStep === 3 && (
                 <motion.div
                   key="step-3"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-col gap-4 w-full"
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col gap-2.5 w-full"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-[#a855f7]/10 text-[#a855f7] flex items-center justify-center">
-                        <Cpu size={18} />
+                      <div className="w-6 h-6 rounded-md bg-[#a855f7]/10 text-[#a855f7] flex items-center justify-center shrink-0">
+                        <Cpu size={14} />
                       </div>
                       <div>
-                        <h4 className="text-sm sm:text-base font-bold text-white">
+                        <h4 className="text-xs sm:text-sm font-bold text-white">
                           VoiceShield v3 Deepfake Acoustic Inference
                         </h4>
-                        <span className="text-xs font-mono text-slate-400">
-                          XLSR Transformer Embeddings | Neural Vocoder Phase Scan
+                        <span className="text-[10px] font-mono text-slate-400">
+                          XLSR Transformer Embeddings &bull; Neural Vocoder Phase Scan
                         </span>
                       </div>
                     </div>
-                    <Badge variant="cyan" size="sm">
+                    <Badge variant="cyan" size="sm" className="py-0 px-2 text-[10px] shrink-0">
                       Real ML Model
                     </Badge>
                   </div>
 
-                  {/* Neural Scan Radar / Diagnostic Bars */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="p-4 rounded-xl bg-[#0a0d16] border border-white/10 space-y-3">
-                      <div className="flex justify-between items-center text-xs font-mono">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="p-3 rounded-lg bg-[#0a0e17] border border-white/10 space-y-2">
+                      <div className="flex justify-between items-center text-[11px] font-mono">
                         <span className="text-slate-300">Vocoder Phase Artifacts:</span>
                         <span className="text-rose-400 font-bold">96.4% Anomalous</span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
+                      <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-amber-400 to-rose-500 w-[96.4%]" />
                       </div>
 
-                      <div className="flex justify-between items-center text-xs font-mono">
+                      <div className="flex justify-between items-center text-[11px] font-mono">
                         <span className="text-slate-300">Phoneme Transition Jitter:</span>
                         <span className="text-rose-400 font-bold">94.1% Synthetic</span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
+                      <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-amber-400 to-rose-500 w-[94.1%]" />
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-[#0a0d16] border border-white/10 flex flex-col justify-between">
+                    <div className="p-3 rounded-lg bg-[#0a0e17] border border-white/10 flex flex-col justify-between">
                       <div>
-                        <span className="text-[11px] font-mono text-slate-400 uppercase block mb-1">
+                        <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1">
                           Acoustic Spectrogram Inspection
                         </span>
-                        <p className="text-xs text-slate-300 leading-normal">
-                          Synthetic neural voices leave microscopic spectral inconsistencies during
-                          vowel-to-consonant formant transitions. VoiceShield detects these artifacts in
-                          fractions of a second.
+                        <p className="text-[11px] text-slate-300 leading-tight">
+                          Synthetic neural voices leave spectral phase inconsistencies during phoneme transitions. VoiceShield detects these artifacts in fractions of a second.
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 mt-2 text-[11px] font-mono text-[#a855f7]">
-                        <span className="w-2 h-2 rounded-full bg-[#a855f7] animate-ping" />
+                      <div className="flex items-center gap-1.5 mt-1 text-[10px] font-mono text-[#a855f7]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#a855f7] animate-ping" />
                         Forward Tensor Execution Complete
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    VoiceShield executes true forward-pass PyTorch inference against pretrained sequence
-                    classification weights, ensuring real deterministic output rather than random simulation.
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    VoiceShield executes true forward-pass PyTorch inference against pretrained sequence classification weights for deterministic authenticity metrics.
                   </p>
                 </motion.div>
               )}
@@ -475,78 +443,76 @@ export default function Demo3DTiltCard({ user }) {
               {activeStep === 4 && (
                 <motion.div
                   key="step-4"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-col gap-4 w-full"
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col gap-2.5 w-full"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">
-                        <ShieldAlert size={18} />
+                      <div className="w-6 h-6 rounded-md bg-rose-500/10 text-rose-400 flex items-center justify-center shrink-0">
+                        <ShieldAlert size={14} />
                       </div>
                       <div>
-                        <h4 className="text-sm sm:text-base font-bold text-white">
-                          Synthesized Threat Verdict & Tactical Defense Advisory
+                        <h4 className="text-xs sm:text-sm font-bold text-white">
+                          Synthesized Threat Verdict & Tactical Advisory
                         </h4>
-                        <span className="text-xs font-mono text-slate-400">
+                        <span className="text-[10px] font-mono text-slate-400">
                           Automated Actionable Security Guidance
                         </span>
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40">
                       CRITICAL RISK ALERT
                     </span>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-rose-950/30 via-[#0a0d16] to-[#0a0d16] border border-rose-500/30 space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-rose-950/30 via-[#0a0e17] to-[#0a0e17] border border-rose-500/30 space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-white/[0.08] pb-2">
                       <div>
-                        <span className="text-xs font-mono text-slate-400 block">CLASSIFICATION VERDICT</span>
-                        <span className="text-lg font-display font-extrabold text-rose-400">
-                          AI GENERATED VOICE CLONE DETECTED (97.8%)
+                        <span className="text-[10px] font-mono text-slate-400 block">CLASSIFICATION VERDICT</span>
+                        <span className="text-sm sm:text-base font-display font-extrabold text-rose-400">
+                          AI GENERATED VOICE CLONE (97.8%)
                         </span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-xs font-mono text-slate-400 block">AUTHENTIC SPEECH PROBABILITY</span>
-                        <span className="text-sm font-mono text-slate-300 font-bold">2.2% Genuine Human</span>
+                      <div className="text-left sm:text-right">
+                        <span className="text-[10px] font-mono text-slate-400 block">AUTHENTIC SPEECH</span>
+                        <span className="text-xs font-mono text-slate-300 font-bold">2.2% Genuine</span>
                       </div>
                     </div>
 
-                    <div className="text-xs text-slate-300 space-y-1.5 font-sans leading-relaxed">
-                      <span className="font-mono text-rose-400 font-bold block uppercase text-[11px]">
+                    <div className="text-[11px] text-slate-300 space-y-1 font-sans leading-tight">
+                      <span className="font-mono text-rose-400 font-bold block uppercase text-[10px]">
                         DEFENSE ACTION PLAN:
                       </span>
                       <p>
-                        1. <strong>Cease Communication:</strong> Do not wire funds, approve invoices, or
-                        provide one-time passcodes (OTP).
+                        1. <strong>Cease Communication:</strong> Do not wire funds or provide one-time passcodes (OTP).
                       </p>
                       <p>
-                        2. <strong>Out-of-Band Callback:</strong> Reach out to the purported caller via a
-                        pre-established, internal corporate channel or known personal phone number.
+                        2. <strong>Out-of-Band Callback:</strong> Reach out via pre-established internal corporate channels.
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Results are automatically recorded in the encrypted Supabase database vault, tagged with
-                    the file name, user email, and user ID, providing an immutable enterprise audit trail.
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Results are logged with audit metadata, tagged with file name and user ID for forensic traceability.
                   </p>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Bottom Controls / Next-Prev buttons [Depth +50px] */}
-            <div className="flex items-center justify-between border-t border-white/[0.08] pt-4 mt-2">
-              <span className="text-xs font-mono text-slate-400">
-                Step {activeStep} of 4: <span className="text-white">{steps[activeStep - 1].subtitle}</span>
+            {/* Bottom Controls */}
+            <div className="flex items-center justify-between border-t border-white/[0.08] pt-2.5 mt-1">
+              <span className="text-[11px] font-mono text-slate-400">
+                Step {activeStep} of 4: <span className="text-white font-semibold">{steps[activeStep - 1].subtitle}</span>
               </span>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="py-1 px-2.5 text-xs h-7"
                   onClick={() => {
                     setActiveStep((prev) => (prev === 1 ? 4 : prev - 1));
                     setIsAutoPlaying(false);
@@ -558,25 +524,17 @@ export default function Demo3DTiltCard({ user }) {
                 <Button
                   variant="secondary"
                   size="sm"
+                  className="py-1 px-2.5 text-xs h-7"
                   onClick={() => {
                     setActiveStep((prev) => (prev % 4) + 1);
                     setIsAutoPlaying(false);
                   }}
                   icon={ArrowRight}
                 >
-                  {activeStep === 4 ? 'Loop to Start' : 'Next Step'}
+                  {activeStep === 4 ? 'Restart' : 'Next'}
                 </Button>
               </div>
             </div>
-          </div>
-
-          {/* Bottom Hint Pill [Depth +35px] */}
-          <div
-            style={{ transform: 'translateZ(35px)' }}
-            className="flex items-center justify-center gap-2 text-xs font-mono text-slate-500 pt-1"
-          >
-            <Layers size={13} className="text-[#00d4ff]" />
-            <span>Multi-layered 3D holographic tilt card &bull; Move mouse across surface</span>
           </div>
         </div>
       </div>
