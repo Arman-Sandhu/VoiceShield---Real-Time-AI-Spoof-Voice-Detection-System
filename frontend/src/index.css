@@ -115,6 +115,27 @@ h1, h2, h3, h4, .font-display {
   animation: tech-ripple 2.4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
 }
 
+/* Compact contained ripple for UI cards & analysis panels */
+@keyframes contained-ripple {
+  0% {
+    transform: scale(0.65);
+    opacity: 0.85;
+    box-shadow: 0 0 10px rgba(0, 245, 212, 0.4);
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+    box-shadow: 0 0 16px rgba(0, 212, 255, 0);
+  }
+}
+
+.animate-contained-ripple {
+  animation: contained-ripple 2.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
 @keyframes cyber-scan {
   0% {
     transform: translateX(-100%);

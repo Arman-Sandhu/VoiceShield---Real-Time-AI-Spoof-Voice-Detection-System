@@ -246,38 +246,38 @@ export default function VoiceAnalysis({ user, username }) {
               {/* Action Button & Scanning Visualizer */}
               <div className="mt-6 pt-6 border-t border-white/[0.08]">
                 {analyzing ? (
-                  <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-[#0f1117]/90 border border-[#00f5d4]/30 text-center relative overflow-hidden">
-                    {/* Splash Screen Mic Shield Ripple Effect */}
-                    <div className="relative flex items-center justify-center w-36 h-36 my-2">
-                      {/* Concentric outward ripples */}
-                      <div className="absolute inset-0 rounded-full border border-[#00f5d4]/50 animate-tech-ripple pointer-events-none" />
+                  <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-[#0f1117]/95 border border-[#00f5d4]/30 text-center relative overflow-hidden shadow-[0_0_20px_rgba(0,245,212,0.08)]">
+                    {/* Contained Splash Screen Mic Shield Ripple Effect */}
+                    <div className="relative flex items-center justify-center w-28 h-28 my-1 pointer-events-none select-none">
+                      {/* Concentric outward ripples strictly contained inside card */}
+                      <div className="absolute inset-0 rounded-full border border-[#00f5d4]/45 animate-contained-ripple" />
                       <div
-                        className="absolute inset-0 rounded-full border border-[#00d4ff]/40 animate-tech-ripple pointer-events-none"
-                        style={{ animationDelay: '0.8s' }}
+                        className="absolute inset-0 rounded-full border border-[#00d4ff]/35 animate-contained-ripple"
+                        style={{ animationDelay: '0.7s' }}
                       />
                       <div
-                        className="absolute inset-0 rounded-full border border-[#10b981]/30 animate-tech-ripple pointer-events-none"
-                        style={{ animationDelay: '1.6s' }}
+                        className="absolute inset-0 rounded-full border border-[#10b981]/25 animate-contained-ripple"
+                        style={{ animationDelay: '1.4s' }}
                       />
 
                       {/* Outer rotating dashed cyber reticles */}
-                      <div className="absolute w-24 h-24 rounded-full border border-dashed border-[#00f5d4]/40 animate-[spin_10s_linear_infinite] pointer-events-none" />
-                      <div className="absolute w-32 h-32 rounded-full border border-dotted border-[#00d4ff]/25 animate-[spin_16s_linear_infinite_reverse] pointer-events-none" />
+                      <div className="absolute w-20 h-20 rounded-full border border-dashed border-[#00f5d4]/35 animate-[spin_10s_linear_infinite]" />
+                      <div className="absolute w-24 h-24 rounded-full border border-dotted border-[#00d4ff]/20 animate-[spin_16s_linear_infinite_reverse]" />
 
                       {/* Central Shield with nestled Mic Logo */}
                       <div className="relative z-10 flex items-center justify-center">
                         <ShieldMicLogo
-                          size={46}
-                          className="text-[#00f5d4] drop-shadow-[0_0_20px_rgba(0,245,212,0.9)]"
-                          micClassName="animate-pulse drop-shadow-[0_0_12px_rgba(0,245,212,0.95)]"
+                          size={38}
+                          className="text-[#00f5d4] drop-shadow-[0_0_16px_rgba(0,245,212,0.85)]"
+                          micClassName="animate-pulse drop-shadow-[0_0_10px_rgba(0,245,212,0.95)]"
                           strokeWidth={1.8}
                         />
                       </div>
                     </div>
 
                     {/* High-tech scanning laser bar */}
-                    <div className="w-48 h-1 bg-slate-800/80 rounded-full relative overflow-hidden border border-white/5 my-2 shadow-inner">
-                      <div className="h-full w-24 bg-gradient-to-r from-transparent via-[#00f5d4] to-transparent animate-cyber-scan" />
+                    <div className="w-44 h-1 bg-slate-800/80 rounded-full relative overflow-hidden border border-white/5 my-2 shadow-inner">
+                      <div className="h-full w-20 bg-gradient-to-r from-transparent via-[#00f5d4] to-transparent animate-cyber-scan" />
                     </div>
 
                     <span className="text-xs font-mono uppercase text-[#00f5d4] tracking-wider font-semibold mb-1">
