@@ -1,3 +1,5 @@
+import os
+import json
 import logging
 from typing import Optional, Dict, Any
 from fastapi import Request, HTTPException, Security, status
@@ -13,7 +15,14 @@ logger = logging.getLogger("voiceshield.security")
 _firebase_initialized = False
 
 try:
-    if settings.FIREBASE_CREDENTIALS_PATH.exists():
+    firebase_json_env = os.getenv("FIREBASE_CREDENTIALS_JSON") or os.getenv("FIREBASE_SERVICE_ACCOUNT")
+    if firebase_json_env and firebase_json_env.strip():
+        cred_dict = json.loads(firebase_json_env.strip())
+        cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred)
+        _firebase_initialized = True
+        logger.info("Firebase Admin SDK initialized from environment JSON string.")
+    elif settings.FIREBASE_CREDENTIALS_PATH.exists():
         cred = credentials.Certificate(str(settings.FIREBASE_CREDENTIALS_PATH))
         firebase_admin.initialize_app(cred)
         _firebase_initialized = True
