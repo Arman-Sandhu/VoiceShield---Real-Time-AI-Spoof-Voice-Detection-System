@@ -95,7 +95,7 @@ export default function Demo3DTiltCard({ user }) {
     {
       id: 3,
       title: '3. Neural Scan',
-      subtitle: 'Wav2Vec2 Inference',
+      subtitle: 'VoiceShield Inference',
       icon: Cpu,
       color: '#a855f7'
     },
@@ -156,7 +156,7 @@ export default function Demo3DTiltCard({ user }) {
                 How VoiceShield Works in Real Action
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-                Experience the 4-step pipeline: from live acoustic sampling to Wav2Vec2 neural
+                Experience the 4-step pipeline: from live acoustic sampling to VoiceShield neural
                 phoneme analysis and situational threat categorization.
               </p>
             </div>
@@ -414,7 +414,7 @@ export default function Demo3DTiltCard({ user }) {
                       </div>
                       <div>
                         <h4 className="text-sm sm:text-base font-bold text-white">
-                          Pretrained Wav2Vec2 Deepfake Acoustic Inference
+                          VoiceShield v3 Deepfake Acoustic Inference
                         </h4>
                         <span className="text-xs font-mono text-slate-400">
                           XLSR Transformer Embeddings | Neural Vocoder Phase Scan
@@ -453,7 +453,7 @@ export default function Demo3DTiltCard({ user }) {
                         </span>
                         <p className="text-xs text-slate-300 leading-normal">
                           Synthetic neural voices leave microscopic spectral inconsistencies during
-                          vowel-to-consonant formant transitions. Wav2Vec2 detects these artifacts in
+                          vowel-to-consonant formant transitions. VoiceShield detects these artifacts in
                           fractions of a second.
                         </p>
                       </div>

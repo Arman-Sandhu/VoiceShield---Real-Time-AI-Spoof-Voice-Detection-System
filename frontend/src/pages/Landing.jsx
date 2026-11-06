@@ -102,7 +102,7 @@ export default function Landing({ user }) {
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                   SPECTRAL ACOUSTIC SENSING ACTIVE
                 </span>
-                <span className="text-[#00d4ff]">16,000 Hz / Wav2Vec2-XLSR</span>
+                <span className="text-[#00d4ff]">16,000 Hz / VoiceShield-v3</span>
               </div>
 
               {/* Decorative Audio Frequency Bars */}
@@ -130,7 +130,7 @@ export default function Landing({ user }) {
               <div className="w-full mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-white/[0.08] text-center sm:text-left text-xs font-mono text-slate-300">
                 <div className="bg-white/[0.02] sm:bg-transparent p-2 sm:p-0 rounded-lg">
                   <span className="text-slate-400 block text-[10px] sm:text-xs">DETECTION ENGINE</span>
-                  <span className="text-white font-semibold">Pretrained Wav2Vec2</span>
+                  <span className="text-white font-semibold">VoiceShield v3-Hardened</span>
                 </div>
                 <div className="bg-white/[0.02] sm:bg-transparent p-2 sm:p-0 rounded-lg">
                   <span className="text-slate-400 block text-[10px] sm:text-xs">TARGET DOMAIN</span>
@@ -173,7 +173,7 @@ export default function Landing({ user }) {
               Neural Deepfake Detection
             </h3>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Utilizes Wav2Vec2 sequence classification to analyze acoustic phoneme subtleties, vocoder artifacts, and synthetic phase anomalies in speech audio.
+              Utilizes the VoiceShield v3-Hardened acoustic model to analyze acoustic phoneme subtleties, vocoder artifacts, and synthetic phase anomalies in speech audio.
             </p>
           </Card>
 
@@ -278,10 +278,10 @@ export default function Landing({ user }) {
               Acoustic Classifier
             </span>
             <h3 className="text-xl font-display font-bold text-white mb-2">
-              Wav2Vec2 Sequence Model
+              VoiceShield v3 Neural Model
             </h3>
             <p className="text-sm text-slate-400 leading-relaxed flex-1">
-              MelodyMachine V2 (94.5M parameters). Fine-tuned cross-lingual speech representation trained on genuine and vocoded spoof audio.
+              VoiceShield v3-Hardened Multilingual Model (317M parameters). Fine-tuned cross-lingual speech representation trained on genuine and vocoded spoof audio.
             </p>
             <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-400">
               <span>Sample Rate</span>

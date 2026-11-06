@@ -224,7 +224,7 @@ export default function AnalysisResult({
                 <span className="flex items-center gap-1.5 shrink-0">
                   <Cpu size={14} className="text-[#00d4ff]" /> Model Architecture
                 </span>
-                <span className="text-slate-200 font-medium">Wav2Vec2 Sequence</span>
+                <span className="text-slate-200 font-medium">VoiceShield Neural Sequence</span>
               </div>
 
               <div className="flex items-center justify-between">
@@ -237,7 +237,7 @@ export default function AnalysisResult({
               <div className="flex items-center justify-between">
                 <span className="shrink-0">Model Identifier</span>
                 <span className="text-slate-300 font-mono truncate max-w-[210px]" title={result.model_name}>
-                  {result.model_name || 'Deepfake-V2'}
+                  {result.model_name || 'voiceshield-hindi-english-deepfake-v3-hardened'}
                 </span>
               </div>
             </div>

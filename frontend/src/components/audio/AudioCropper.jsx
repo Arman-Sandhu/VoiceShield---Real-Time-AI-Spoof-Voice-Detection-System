@@ -84,7 +84,7 @@ export default function AudioCropper({
   const handleApplyCrop = async () => {
     const selectedLength = endTime - startTime;
     if (selectedLength < 1.0) {
-      setErrorMessage('Selected segment is too short. Wav2Vec2 neural model requires at least 1.0 second of audio.');
+      setErrorMessage('Selected segment is too short. VoiceShield neural model requires at least 1.0 second of audio.');
       return;
     }
 

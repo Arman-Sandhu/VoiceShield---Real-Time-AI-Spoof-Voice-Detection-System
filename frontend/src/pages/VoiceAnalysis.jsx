@@ -56,11 +56,11 @@ export default function VoiceAnalysis({ user, username }) {
 
     // Realistic progressive status sequence
     const phases = [
-      'Validating & Normalizing Audio Buffer',
-      'Running Wav2Vec2 Neural Feature Extractor',
+      'Calibrating Acoustic Waveform Signal',
+      'Running VoiceShield Neural Feature Extractor',
       'Classifying Acoustic Deepfake Probabilities',
       'Synthesizing Contextual Social Engineering Risk',
-      'Securing Audit Telemetry'
+      'Securing Forensic Telemetry Vault'
     ];
 
     let phaseIndex = 0;
@@ -246,17 +246,41 @@ export default function VoiceAnalysis({ user, username }) {
               {/* Action Button & Scanning Visualizer */}
               <div className="mt-6 pt-6 border-t border-white/[0.08]">
                 {analyzing ? (
-                  <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-[#0f1117] border border-[#00d4ff]/30 text-center">
-                    <div className="relative w-16 h-16 flex items-center justify-center mb-4">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
-                        className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#00d4ff] border-r-[#a855f7]"
+                  <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-[#0f1117]/90 border border-[#00f5d4]/30 text-center relative overflow-hidden">
+                    {/* Splash Screen Mic Shield Ripple Effect */}
+                    <div className="relative flex items-center justify-center w-36 h-36 my-2">
+                      {/* Concentric outward ripples */}
+                      <div className="absolute inset-0 rounded-full border border-[#00f5d4]/50 animate-tech-ripple pointer-events-none" />
+                      <div
+                        className="absolute inset-0 rounded-full border border-[#00d4ff]/40 animate-tech-ripple pointer-events-none"
+                        style={{ animationDelay: '0.8s' }}
                       />
-                      <Cpu size={24} className="text-[#00d4ff] animate-pulse" />
+                      <div
+                        className="absolute inset-0 rounded-full border border-[#10b981]/30 animate-tech-ripple pointer-events-none"
+                        style={{ animationDelay: '1.6s' }}
+                      />
+
+                      {/* Outer rotating dashed cyber reticles */}
+                      <div className="absolute w-24 h-24 rounded-full border border-dashed border-[#00f5d4]/40 animate-[spin_10s_linear_infinite] pointer-events-none" />
+                      <div className="absolute w-32 h-32 rounded-full border border-dotted border-[#00d4ff]/25 animate-[spin_16s_linear_infinite_reverse] pointer-events-none" />
+
+                      {/* Central Shield with nestled Mic Logo */}
+                      <div className="relative z-10 flex items-center justify-center">
+                        <ShieldMicLogo
+                          size={46}
+                          className="text-[#00f5d4] drop-shadow-[0_0_20px_rgba(0,245,212,0.9)]"
+                          micClassName="animate-pulse drop-shadow-[0_0_12px_rgba(0,245,212,0.95)]"
+                          strokeWidth={1.8}
+                        />
+                      </div>
                     </div>
 
-                    <span className="text-xs font-mono uppercase text-[#00d4ff] tracking-wider font-semibold mb-1">
+                    {/* High-tech scanning laser bar */}
+                    <div className="w-48 h-1 bg-slate-800/80 rounded-full relative overflow-hidden border border-white/5 my-2 shadow-inner">
+                      <div className="h-full w-24 bg-gradient-to-r from-transparent via-[#00f5d4] to-transparent animate-cyber-scan" />
+                    </div>
+
+                    <span className="text-xs font-mono uppercase text-[#00f5d4] tracking-wider font-semibold mb-1">
                       Running Neural Acoustic Model
                     </span>
                     <p className="text-xs text-slate-300 font-mono">

@@ -1,9 +1,10 @@
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 
 from app.core.security import verify_token
 from app.services.history_service import history_service
+from app.services.hf_sync_service import hf_sync_service
 from app.schemas.analysis import (
     AnalysisHistoryItem,
     FlagToggleResponse,
@@ -52,7 +53,11 @@ def get_analysis_by_id(event_id: str, user: dict = Depends(verify_token)):
 
 @router.patch("/analysis/{event_id}/flag", response_model=FlagToggleResponse)
 @router.post("/analysis/{event_id}/flag", response_model=FlagToggleResponse)
-def toggle_analysis_flag(event_id: str, user: dict = Depends(verify_token)):
+def toggle_analysis_flag(
+    event_id: str,
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+    user: dict = Depends(verify_token)
+):
     """
     Toggles the is_flagged status for an analysis record if user believes analysis was inaccurate.
     """
@@ -62,6 +67,17 @@ def toggle_analysis_flag(event_id: str, user: dict = Depends(verify_token)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Analysis record '{event_id}' not found or access denied."
         )
+
+    # Sync updated flag status to Hugging Face dataset in background
+    try:
+        background_tasks.add_task(
+            hf_sync_service.update_flag,
+            event_id=event_id,
+            is_flagged=result["is_flagged"]
+        )
+    except Exception as hf_err:
+        logger.warning(f"Could not queue HF flag update task: {hf_err}")
+
     return FlagToggleResponse(
         event_id=result["event_id"],
         is_flagged=result["is_flagged"],

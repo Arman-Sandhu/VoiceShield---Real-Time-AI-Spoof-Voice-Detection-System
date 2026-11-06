@@ -4,7 +4,7 @@ import { encodeWAV } from './wavEncoder';
  * Client-side high-fidelity audio cropper/trimmer.
  * Slices any audio file/blob from startTime to endTime,
  * downmixes to mono, resamples to 16,000 Hz, and encodes
- * into a standard 16-bit PCM WAV compatible with Wav2Vec2 inference.
+ * into a standard 16-bit PCM WAV compatible with VoiceShield inference.
  *
  * @param {File|Blob} fileOrBlob - Input audio file or blob
  * @param {number} startTime - Start time in seconds
@@ -59,7 +59,7 @@ export async function cropAudioFile(fileOrBlob, startTime, endTime, newFileName)
     }
   }
 
-  // Target 16,000 Hz for Wav2Vec2 inference
+  // Target 16,000 Hz for VoiceShield inference
   let finalSamples = monoSamples;
   const targetSampleRate = 16000;
 

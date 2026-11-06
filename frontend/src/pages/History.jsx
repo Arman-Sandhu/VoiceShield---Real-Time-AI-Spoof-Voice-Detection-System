@@ -606,7 +606,7 @@ export default function History({ user, username }) {
                   </div>
                   <div className="flex justify-between">
                     <span>Model Identifier:</span>
-                    <span className="text-slate-200">{selectedRecord.model_name || 'Deepfake-V2'}</span>
+                    <span className="text-slate-200">{selectedRecord.model_name || 'voiceshield-hindi-english-deepfake-v3-hardened'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Audio Duration:</span>

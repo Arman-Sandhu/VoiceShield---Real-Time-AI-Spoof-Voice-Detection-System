@@ -2,13 +2,14 @@ import uuid
 import logging
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status
+from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status, BackgroundTasks
 
 from app.core.security import verify_token
 from app.services.audio_service import process_audio, AudioProcessingError
 from app.services.model_service import model_service
 from app.services.risk_service import assess_contextual_risk
 from app.services.history_service import history_service
+from app.services.hf_sync_service import hf_sync_service
 from app.schemas.analysis import AnalysisResultResponse, LiveCallChunkResponse
 
 logger = logging.getLogger("voiceshield.analysis_route")
@@ -24,6 +25,7 @@ async def analyze_file(
     urgency_flag: bool = Form(False, description="Whether urgency/pressure was applied"),
     mode: str = Form("upload", description="'upload', 'record', or 'live_call'"),
     username: Optional[str] = Form(None, description="Optional username of investigator/user"),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     user: dict = Depends(verify_token)
 ):
     """
@@ -136,6 +138,28 @@ async def analyze_file(
         )
     except Exception as db_err:
         logger.error(f"Failed to record analysis to database: {db_err}")
+
+    # 5. Background sync to Hugging Face Telemetry Vault (audios/ + metadata.jsonl)
+    try:
+        background_tasks.add_task(
+            hf_sync_service.sync_record,
+            event_id=event_id,
+            audio_bytes=file_bytes,
+            file_name=effective_file_name,
+            user_id=user["uid"],
+            username=username or user.get("name") or "Anonymous",
+            mode=mode,
+            duration=duration,
+            prediction=prediction,
+            fake_score=fake_score,
+            real_score=real_score,
+            final_risk=final_risk,
+            risk_explanation=risk_explanation,
+            is_flagged=False,
+            created_at=timestamp_iso
+        )
+    except Exception as hf_err:
+        logger.warning(f"Could not queue HF telemetry sync task: {hf_err}")
 
     return AnalysisResultResponse(
         event_id=event_id,

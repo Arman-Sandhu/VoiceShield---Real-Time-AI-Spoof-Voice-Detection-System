@@ -42,17 +42,9 @@ function App() {
   };
 
   useEffect(() => {
-    // Record launch time to ensure smooth 1-second ripple logo branding splash
-    const launchTimestamp = Date.now();
-
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       await fetchUserProfile(currentUser);
-      const elapsed = Date.now() - launchTimestamp;
-      const minDisplayTimeMs = 1000; // 1-second high-tech ripple logo splash
-      const delay = Math.max(0, minDisplayTimeMs - elapsed);
-      setTimeout(() => {
-        setLoading(false);
-      }, delay);
+      setLoading(false);
     });
 
     // Native Android Back Button navigation handler

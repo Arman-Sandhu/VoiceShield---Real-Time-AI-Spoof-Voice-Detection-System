@@ -53,7 +53,7 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
     try {
       // Capture clean, unprocessed raw acoustic audio without destructive DSP filtering.
       // Disabling echoCancellation, noiseSuppression, and autoGainControl preserves high-frequency vocoder
-      // phase harmonics and micro-tremors essential for Wav2Vec2 deepfake detection.
+      // phase harmonics and micro-tremors essential for VoiceShield deepfake detection.
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,

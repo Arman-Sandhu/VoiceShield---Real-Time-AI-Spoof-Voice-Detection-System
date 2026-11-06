@@ -18,7 +18,7 @@ export default function Footer() {
 
         <div className="flex items-center gap-6 text-xs font-mono text-slate-400">
           <span className="flex items-center gap-1.5">
-            <Cpu size={14} className="text-[#00d4ff]" /> Wav2Vec2 Acoustic Classifier
+            <Cpu size={14} className="text-[#00d4ff]" /> VoiceShield v3-Hardened Acoustic Model
           </span>
           <span className="flex items-center gap-1.5">
             <Database size={14} className="text-[#a855f7]" /> Supabase / SQLite Engine
