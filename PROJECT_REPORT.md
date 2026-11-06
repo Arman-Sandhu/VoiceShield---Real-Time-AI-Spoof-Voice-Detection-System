@@ -507,6 +507,7 @@ During cloud evaluation, initial deployments targeted PaaS platforms like Render
 
 The VoiceShield React 19 / Vite client is deployed to **Vercel** with continuous deployment from GitHub:
 
+* **Live Production URL**: `https://voiceshield-aispoof-detection.vercel.app/`
 * **Root Directory**: `frontend`
 * **Build Command**: `npm run build` (outputs to `dist`)
 * **Single-Page Application (SPA) Deep Routing**: Configured via `frontend/vercel.json`:

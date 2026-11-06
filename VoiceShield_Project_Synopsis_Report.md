@@ -344,6 +344,7 @@ VoiceShield delivers a cohesive, fully functioning deep learning solution to voi
 - **REST & Gradio Routing**: Dual surface serving FastAPI REST routes (`/analyze-file`, `/analysis/live-chunk`, `/health`, `/history`) alongside an interactive Gradio web playground (`/gradio/`).
 
 ### 13.2 Vercel Production Frontend
+- **Live Web App**: `https://voiceshield-aispoof-detection.vercel.app/`
 - **Hosting**: Vercel automated continuous integration and continuous deployment (CI/CD).
 - **Deep SPA Routing**: `vercel.json` configured with fallback rewrites to `/index.html` ensuring direct navigation to all dashboard and telemetry views.
 - **Environment Integration**: Securely loads Hugging Face API URLs and Firebase authentication tokens.
