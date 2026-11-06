@@ -12,7 +12,7 @@ export default function Footer() {
           </div>
           <div>
             <p className="font-display font-semibold text-white">VoiceShield AI</p>
-            <p className="text-xs text-slate-500">Real-Time AI Spoof Voice Detection & Social Engineering Defense</p>
+            <p className="text-xs text-slate-400">Real-Time AI Spoof Voice Detection & Social Engineering Defense</p>
           </div>
         </div>
 
@@ -28,7 +28,7 @@ export default function Footer() {
           </span>
         </div>
 
-        <p className="text-xs text-slate-500 text-center md:text-right">
+        <p className="text-xs text-slate-400 text-center md:text-right">
           Model outputs are probabilistic estimates for decision support.
         </p>
       </div>

@@ -129,15 +129,15 @@ export default function Landing({ user }) {
 
               <div className="w-full mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-white/[0.08] text-center sm:text-left text-xs font-mono text-slate-300">
                 <div className="bg-white/[0.02] sm:bg-transparent p-2 sm:p-0 rounded-lg">
-                  <span className="text-slate-500 block text-[10px] sm:text-xs">DETECTION ENGINE</span>
+                  <span className="text-slate-400 block text-[10px] sm:text-xs">DETECTION ENGINE</span>
                   <span className="text-white font-semibold">Pretrained Wav2Vec2</span>
                 </div>
                 <div className="bg-white/[0.02] sm:bg-transparent p-2 sm:p-0 rounded-lg">
-                  <span className="text-slate-500 block text-[10px] sm:text-xs">TARGET DOMAIN</span>
+                  <span className="text-slate-400 block text-[10px] sm:text-xs">TARGET DOMAIN</span>
                   <span className="text-[#00d4ff] font-semibold">English & Hindi Audio</span>
                 </div>
                 <div className="bg-white/[0.02] sm:bg-transparent p-2 sm:p-0 rounded-lg">
-                  <span className="text-slate-500 block text-[10px] sm:text-xs">EVALUATION</span>
+                  <span className="text-slate-400 block text-[10px] sm:text-xs">EVALUATION</span>
                   <span className="text-emerald-400 font-semibold">Deterministic Threat Engine</span>
                 </div>
               </div>
@@ -217,39 +217,39 @@ export default function Landing({ user }) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="p-6 rounded-2xl bg-[#0f1117] border border-white/[0.08] relative">
-            <span className="text-4xl font-display font-black text-[#00d4ff]/20 absolute top-4 right-6">
+            <span aria-hidden="true" className="text-4xl font-display font-black text-[#00d4ff]/20 absolute top-4 right-6 select-none pointer-events-none">
               01
             </span>
             <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#00d4ff] mb-4">
               <Mic size={20} />
             </div>
-            <h4 className="text-lg font-bold text-white mb-2">Capture or Upload</h4>
+            <h3 className="text-lg font-bold text-white mb-2">Capture or Upload</h3>
             <p className="text-sm text-slate-400">
               Record live speech directly through the browser with native 16kHz WAV encoding or upload recorded audio files (WAV, MP3, FLAC).
             </p>
           </div>
 
           <div className="p-6 rounded-2xl bg-[#0f1117] border border-white/[0.08] relative">
-            <span className="text-4xl font-display font-black text-[#a855f7]/20 absolute top-4 right-6">
+            <span aria-hidden="true" className="text-4xl font-display font-black text-[#a855f7]/20 absolute top-4 right-6 select-none pointer-events-none">
               02
             </span>
             <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#a855f7] mb-4">
               <Radio size={20} />
             </div>
-            <h4 className="text-lg font-bold text-white mb-2">Neural Inference</h4>
+            <h3 className="text-lg font-bold text-white mb-2">Neural Inference</h3>
             <p className="text-sm text-slate-400">
               FastAPI backend resamples to 16kHz mono, trims silence, and performs real forward-pass inference on the pretrained deepfake detection model.
             </p>
           </div>
 
           <div className="p-6 rounded-2xl bg-[#0f1117] border border-white/[0.08] relative">
-            <span className="text-4xl font-display font-black text-emerald-500/20 absolute top-4 right-6">
+            <span aria-hidden="true" className="text-4xl font-display font-black text-emerald-500/20 absolute top-4 right-6 select-none pointer-events-none">
               03
             </span>
             <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400 mb-4">
               <ShieldMicLogo size={20} />
             </div>
-            <h4 className="text-lg font-bold text-white mb-2">Risk Synthesis</h4>
+            <h3 className="text-lg font-bold text-white mb-2">Risk Synthesis</h3>
             <p className="text-sm text-slate-400">
               Model probability scores are synthesized with contextual threat flags to output actionable guidance (Low, Medium, High, or Critical threat).
             </p>
@@ -283,7 +283,7 @@ export default function Landing({ user }) {
             <p className="text-sm text-slate-400 leading-relaxed flex-1">
               MelodyMachine V2 (94.5M parameters). Fine-tuned cross-lingual speech representation trained on genuine and vocoded spoof audio.
             </p>
-            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-500">
+            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-400">
               <span>Sample Rate</span>
               <span className="text-[#00d4ff] font-medium">16 kHz Mono</span>
             </div>
@@ -302,7 +302,7 @@ export default function Landing({ user }) {
             <p className="text-sm text-slate-400 leading-relaxed flex-1">
               High-throughput async execution pipeline with automated CUDA GPU / CPU sensing, RMS silence trimming, and fast tensor inference.
             </p>
-            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-500">
+            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-400">
               <span>Compute</span>
               <span className="text-[#a855f7] font-medium">CUDA / Torch CPU</span>
             </div>
@@ -321,7 +321,7 @@ export default function Landing({ user }) {
             <p className="text-sm text-slate-400 leading-relaxed flex-1">
               Zero-trust identity verification via cryptographic JWT tokens. Subspace boundaries isolate user telemetry and audio records.
             </p>
-            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-500">
+            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-400">
               <span>Protocol</span>
               <span className="text-emerald-400 font-medium">RS256 JWT</span>
             </div>
@@ -340,7 +340,7 @@ export default function Landing({ user }) {
             <p className="text-sm text-slate-400 leading-relaxed flex-1">
               Encrypted cloud PostgreSQL storage with RLS policies and instant, zero-downtime offline fallback to local SQLite database.
             </p>
-            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-500">
+            <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono text-slate-400">
               <span>Resilience</span>
               <span className="text-amber-400 font-medium">Zero-Downtime</span>
             </div>

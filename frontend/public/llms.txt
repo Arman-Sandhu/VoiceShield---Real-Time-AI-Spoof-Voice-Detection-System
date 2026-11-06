@@ -1,0 +1,18 @@
+# VoiceShield AI
+
+> VoiceShield is a zero-trust AI spoof voice detection and social engineering defense platform.
+
+VoiceShield is designed to protect individuals, contact centers, and financial organizations against synthetic speech deepfakes, unauthorized voice cloning, and AI-driven extortion attacks. It combines Wav2Vec2-XLSR cross-lingual acoustic sequence classification with real-time contextual threat synthesis.
+
+## Core Capabilities
+- **Neural Spoof Detection**: Pretrained Wav2Vec2 sequence classifier trained on authentic vs. vocoded speech artifacts.
+- **Contextual Threat Engine**: Synthesizes acoustic phonetic anomaly scores with behavioral extortion indicators (unverified caller IDs, artificial urgency, payment demands).
+- **16kHz Ingestion Pipeline**: Native browser 16,000 Hz WAV recording and lossless audio file analysis (WAV, MP3, FLAC).
+- **Zero-Trust Audit Vault**: Cryptographically signed audit logging with Supabase PostgreSQL and offline SQLite fallback.
+
+## Navigational Links
+- [VoiceShield App](https://voiceshield-aispoof-detection.vercel.app/)
+- [Login & Authentication](https://voiceshield-aispoof-detection.vercel.app/login)
+- [Voice Analysis Workspace](https://voiceshield-aispoof-detection.vercel.app/analyze)
+- [System Architecture](https://voiceshield-aispoof-detection.vercel.app/#technology)
+

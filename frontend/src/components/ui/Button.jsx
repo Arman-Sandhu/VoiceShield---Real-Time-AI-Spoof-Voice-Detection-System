@@ -16,7 +16,7 @@ export default function Button({
   icon: Icon = null,
   ...props
 }) {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 select-none relative overflow-hidden';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 select-none relative overflow-hidden';
 
   const variants = {
     primary: 'bg-gradient-to-r from-[#00d4ff] to-[#0284c7] text-[#07080f] font-semibold hover:shadow-[0_0_25px_rgba(0,212,255,0.4)] border border-[#00d4ff]/40',

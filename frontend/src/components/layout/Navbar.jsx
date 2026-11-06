@@ -114,8 +114,9 @@ export default function Navbar({ user, username, onUpdateUsername }) {
               <button
                 type="button"
                 onClick={handleOpenEditModal}
-                className="p-1.5 rounded-lg bg-[#161b27] border border-white/10 text-slate-400 hover:text-[#00d4ff] hover:border-[#00d4ff]/40 hover:bg-[#00d4ff]/10 transition-all flex items-center justify-center cursor-pointer shadow-sm group"
+                className="p-1.5 rounded-lg bg-[#161b27] border border-white/10 text-slate-400 hover:text-[#00d4ff] hover:border-[#00d4ff]/40 hover:bg-[#00d4ff]/10 transition-all flex items-center justify-center cursor-pointer shadow-sm group min-w-[32px] min-h-[32px]"
                 title="Edit your display name / username"
+                aria-label="Edit your display name or username"
               >
                 <Pencil size={13} className="group-hover:scale-110 transition-transform" />
               </button>
@@ -157,8 +158,9 @@ export default function Navbar({ user, username, onUpdateUsername }) {
                   <button
                     type="button"
                     onClick={() => setIsEditingModalOpen(false)}
-                    className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+                    className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center cursor-pointer"
                     title="Close"
+                    aria-label="Close modal"
                   >
                     <X size={18} />
                   </button>

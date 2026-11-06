@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://voiceshield-aispoof-detection.vercel.app/sitemap.xml
+

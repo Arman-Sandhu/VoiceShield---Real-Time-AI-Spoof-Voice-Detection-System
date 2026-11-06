@@ -166,7 +166,7 @@ export default function Login({ onLoginSuccess }) {
               setError(null);
               setSuccessMsg(null);
             }}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors duration-150 ${
               !isSignUp
                 ? 'bg-[#00d4ff]/15 text-[#00d4ff] shadow-[0_0_15px_rgba(0,212,255,0.2)]'
                 : 'text-slate-400 hover:text-white'
@@ -181,7 +181,7 @@ export default function Login({ onLoginSuccess }) {
               setError(null);
               setSuccessMsg(null);
             }}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors duration-150 ${
               isSignUp
                 ? 'bg-[#00d4ff]/15 text-[#00d4ff] shadow-[0_0_15px_rgba(0,212,255,0.2)]'
                 : 'text-slate-400 hover:text-white'
@@ -273,14 +273,15 @@ export default function Login({ onLoginSuccess }) {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
+                className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 pr-12 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
               />
               <Lock size={16} className="absolute left-3.5 top-3 text-slate-500" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-3 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-1 top-1 bottom-1 px-3 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer min-w-[44px] rounded-lg"
                 title={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -304,14 +305,15 @@ export default function Login({ onLoginSuccess }) {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
+                  className="w-full bg-[#0f1117] border border-white/10 rounded-xl px-4 py-2.5 pl-10 pr-12 text-sm text-white placeholder-slate-500 outline-none focus:border-[#00d4ff] focus:ring-1 focus:ring-[#00d4ff]/30 transition-all font-sans"
                 />
                 <Lock size={16} className="absolute left-3.5 top-3 text-slate-500" />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3.5 top-3 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="absolute right-1 top-1 bottom-1 px-3 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer min-w-[44px] rounded-lg"
                   title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
                   {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -335,7 +337,7 @@ export default function Login({ onLoginSuccess }) {
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-white/[0.08]" />
           </div>
-          <span className="relative bg-[#161b27] px-3 text-[11px] font-mono text-slate-500 uppercase">
+          <span className="relative bg-[#161b27] px-3 text-[11px] font-mono text-slate-400 uppercase">
             OR CONTINUE WITH
           </span>
         </div>

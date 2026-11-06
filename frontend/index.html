@@ -7,10 +7,21 @@
     <title>VoiceShield — Real-Time AI Spoof Voice Detection System</title>
     <meta name="description" content="AI-powered voice authenticity analysis designed to identify synthetic speech deepfakes and assess caller social engineering threats." />
     
-    <!-- Google Fonts: Inter (Body) & Sora (Headings/Display) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Canonical URL for SEO -->
+    <link rel="canonical" href="https://voiceshield-aispoof-detection.vercel.app/" />
+
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://voicecloning-090926.firebaseapp.com" />
+    <link rel="preconnect" href="https://apis.google.com" />
+
+    <!-- Non-render-blocking Google Fonts with instant print->all swap -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap" />
+    </noscript>
   </head>
   <body class="bg-[#07080f] text-slate-100 font-sans antialiased selection:bg-[#00d4ff]/30 selection:text-white">
     <div id="root"></div>
