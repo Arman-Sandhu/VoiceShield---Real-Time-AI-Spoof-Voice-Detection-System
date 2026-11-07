@@ -46,12 +46,12 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Make Gradlew Executable
-        run: chmod +x frontend/android/gradlew
-
-      - name: Copy Web Assets to Android Project
-        working-directory: frontend
-        run: npx cap copy android
+      - name: Sync Web Assets to Android Project
+        run: |
+          chmod +x frontend/android/gradlew
+          mkdir -p frontend/android/app/src/main/assets/public
+          cp -r frontend/dist/* frontend/android/app/src/main/assets/public/
+          cp frontend/capacitor.config.json frontend/android/app/src/main/assets/capacitor.config.json
 
       - name: Assemble Android APK
         working-directory: frontend/android
