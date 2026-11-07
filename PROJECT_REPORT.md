@@ -541,6 +541,23 @@ The frontend codebase is compiled to a standalone native Android package (`.apk`
 
 ---
 
+### 12.8 Automated CI/CD Android Release Pipeline & Zero-Auth CDN Distribution
+
+To enable seamless distribution without Google Play Store developer fees ($25) or private repository access barriers:
+
+1. **Automated Headless Build Pipeline (`.github/workflows/build-apk.yml`)**:
+   - Automated GitHub Actions workflow triggered on release tags (`v*`) or manual `workflow_dispatch`.
+   - Provisions Node 20, Java Temurin JDK 21, and uses Gradle 8.14.3 (`gradle/actions/setup-gradle@v3`).
+   - Automatically runs `npm ci`, compiles production assets (`npm run build`), synchronizes Capacitor Android assets, and executes `./gradlew assembleDebug --no-daemon`.
+   - Packages and signs release binaries, publishing `VoiceShield.apk` to GitHub Releases.
+
+2. **Direct High-Speed CDN Static Distribution (Vercel CDN)**:
+   - For total source code privacy, the compiled `VoiceShield.apk` (4.55 MB) is committed to `frontend/public/VoiceShield.apk` and hosted directly on Vercel's global edge network:
+     `https://voiceshield-aispoof-detection.vercel.app/VoiceShield.apk`
+   - **Architectural Security Advantage**: The main GitHub repository can be toggled to **100% Private** without breaking APK distribution. External users downloading from the website experience zero authentication friction, instant download speeds, and no exposure of proprietary model weights or source files.
+
+---
+
 ## 13. Verification, Testing & Performance Benchmarks
 
 ### 13.1 Empirical Test Results on Real Audio Clips
@@ -668,6 +685,9 @@ Empirical testing across live user sessions revealed high reliability across all
 | **Nov 2026** | v3.2.0 | **Frontier Gemini Multimodal Adaptation & Biometric Decoupling**: Fine-tuned top 4 transformer layers of v3 checkpoint with experience replay across Google Gemini discrete-token Hindi and English voices. Decoupled biometric heuristics from binary classification, eradicating false human passes on dynamic/expressive AI voices. Generated standalone Colab adaptation notebook (`VoiceShield_v3_Frontier_Gemini_Adaptation.ipynb`). |
 | **Nov 2026** | v3.3.0 | **Batched Temporal Sliding-Window Aggregation Engine**: Diagnosed long-audio temporal dilution in Wav2Vec2 global average pooling on 5s–15s audio. Implemented 3.0s sliding windows with 1.0s strides, active speech energy filtering, and 50% Peak AI Burst + 50% Active Speech Energy-Weighted Mean aggregation. Achieved 100% accuracy across all frontier Gemini, legacy AI, and authentic FLEURS human benchmarks with zero catastrophic forgetting. |
 | **Nov 2026** | v4.0.0 | **Enterprise Cloud Infrastructure & Native Android Release**: Deployed cloud backend to **Hugging Face Spaces ZeroGPU** (`ArmanSandhu1729/voiceshield-backend`) with NVIDIA A10G 24GB acceleration (sub-50ms inference). Engineered dual FastAPI REST + Gradio UI routing. Deployed frontend to **Vercel** with full SPA rewrite routing. Successfully compiled native **Android APK** (`app-debug.apk`, 4.34 MB) via Capacitor 8 with custom adaptive vector branding, hardware back button hooks, and zero-drift mobile responsive layout. |
+| **Nov 2026** | v4.1.0 | **Automated CI/CD Android Build & GitHub Release Pipeline**: Implemented headless GitHub Actions workflow (`.github/workflows/build-apk.yml`) with Java JDK 21, Gradle 8.14.3, and automated Capacitor asset synchronization. Published signed `VoiceShield.apk` to GitHub Releases on tag push `v1.0.0`. |
+| **Nov 2026** | v4.2.0 | **Zero-Auth Static CDN APK Distribution & Source Privacy Shielding**: Bundled `VoiceShield.apk` (4.55 MB) directly into Vercel public assets (`frontend/public/VoiceShield.apk`). Integrated direct download CTA on landing page hero. Enabled 100% private repository shielding while allowing frictionless, one-click global APK downloads for external users. |
+| **Nov 2026** | v4.2.1 | **Transition Performance & 3D Tilt UI Ergonomics**: Replaced dynamic route suspense spinners with direct static component bundling, eliminating intermediate flicker and transitioning seamlessly from the initial `TechLoader` directly into the app UI. Polished `Demo3DTiltCard.jsx` geometry (`max-w-3xl`), eradicated Chromium GPU text blur, and added macOS-style window controls. |
 
 ---
 

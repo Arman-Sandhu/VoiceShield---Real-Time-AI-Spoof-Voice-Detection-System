@@ -331,7 +331,7 @@ VoiceShield delivers a cohesive, fully functioning deep learning solution to voi
 
 ---
 
-## 13. Production Cloud Deployment & Native Mobile Architecture (v4.0.0)
+## 13. Production Cloud Deployment & Native Mobile Architecture (v4.2.0)
 
 ### 13.1 Hugging Face Spaces (ZeroGPU Free Tier) Backend
 
@@ -350,5 +350,10 @@ VoiceShield delivers a cohesive, fully functioning deep learning solution to voi
 - **Environment Integration**: Securely loads Hugging Face API URLs and Firebase authentication tokens.
 
 ### 13.3 Native Android Mobile Application
-- **Distribution Package**: `app-debug.apk` (4.34 MB), built via Capacitor 8 and Gradle 8.14.3 targeting Android 15 (API 35).
+- **Distribution Package**: `VoiceShield.apk` (4.55 MB), built via Capacitor 8 and Gradle 8.14.3 targeting Android 15 (API 35).
 - **Mobile Hardware Integration**: Hardware back button management via `@capacitor/app`, mobile vibration/haptics, audible alarm beeps, and zero-drift responsive viewport containment.
+
+### 13.4 Automated CI/CD Release Pipeline & Frictionless CDN Distribution
+- **Automated Cloud Build (`.github/workflows/build-apk.yml`)**: Continuous deployment workflow on GitHub Actions utilizing Java JDK 21 and Gradle 8.14.3 to compile the Android APK and publish release binaries directly to GitHub Releases upon tag triggers.
+- **Zero-Auth Static CDN Hosting**: To circumvent Google Play developer fees and ensure immediate public accessibility while preserving full repository privacy, `VoiceShield.apk` is served directly from the website's static public asset edge (`https://voiceshield-aispoof-detection.vercel.app/VoiceShield.apk`).
+- **Hero CTA Integration**: Seamless 1-click download trigger built into the primary landing page interface.
