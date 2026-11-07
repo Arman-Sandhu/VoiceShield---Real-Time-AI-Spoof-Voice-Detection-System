@@ -86,11 +86,10 @@ export default function Landing({ user }) {
             </Link>
 
             <a
-              href="https://github.com/Arman-Sandhu/VoiceShield---Real-Time-AI-Spoof-Voice-Detection-System/releases/latest/download/VoiceShield.apk"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/VoiceShield.apk"
+              download="VoiceShield.apk"
               className="w-full sm:w-auto"
-              title="Download VoiceShield Android APK"
+              title="Download VoiceShield Android App (.apk)"
             >
               <Button size="lg" variant="ghost" icon={Download} className="w-full sm:w-auto border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10">
                 Download APK

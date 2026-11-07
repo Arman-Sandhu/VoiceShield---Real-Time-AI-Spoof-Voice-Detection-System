@@ -67,3 +67,5 @@ yarn-error.log*
 Thumbs.db
 
 *.apk
+!frontend/public/VoiceShield.apk
+

@@ -9,13 +9,13 @@
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-Transformers-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
-[![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Arman-Sandhu/VoiceShield---Real-Time-AI-Spoof-Voice-Detection-System/releases/latest/download/VoiceShield.apk)
+[![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://voiceshield-aispoof-detection.vercel.app/VoiceShield.apk)
 
 ---
 
 ## 📲 Download Android APK
 You can install and run VoiceShield natively on any Android device without Google Play:
-1. **[Direct Download VoiceShield.apk](https://github.com/Arman-Sandhu/VoiceShield---Real-Time-AI-Spoof-Voice-Detection-System/releases/latest/download/VoiceShield.apk)**
+1. **[Direct Download VoiceShield.apk](https://voiceshield-aispoof-detection.vercel.app/VoiceShield.apk)**
 2. Tap the downloaded file on your Android phone and select **Install**. (If prompted, allow *"Install from unknown sources"* or *"Install anyway"*).
 3. Open VoiceShield and start analyzing suspicious calls and voice recordings!
 
