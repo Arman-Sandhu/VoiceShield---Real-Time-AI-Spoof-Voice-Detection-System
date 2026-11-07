@@ -9,7 +9,8 @@ import {
   AlertTriangle,
   Database,
   Radio,
-  Server
+  Server,
+  Download
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -84,9 +85,21 @@ export default function Landing({ user }) {
               </Button>
             </Link>
 
+            <a
+              href="https://github.com/Arman-Sandhu/VoiceShield---Real-Time-AI-Spoof-Voice-Detection-System/releases/latest/download/VoiceShield.apk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto"
+              title="Download VoiceShield Android APK"
+            >
+              <Button size="lg" variant="ghost" icon={Download} className="w-full sm:w-auto border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10">
+                Download APK
+              </Button>
+            </a>
+
             <a href="#technology" className="w-full sm:w-auto">
               <Button size="lg" variant="secondary" icon={Cpu} className="w-full sm:w-auto">
-                Explore Technology
+                Explore Tech
               </Button>
             </a>
           </motion.div>
