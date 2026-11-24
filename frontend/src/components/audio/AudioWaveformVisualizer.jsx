@@ -538,18 +538,6 @@ export default function AudioWaveformVisualizer({
       ref={containerRef}
       className={`w-full relative overflow-hidden rounded-2xl bg-[#04090e] border border-[#00f5d4]/20 p-2.5 shadow-[inset_0_0_30px_rgba(0,245,212,0.06),0_0_20px_rgba(0,0,0,0.6)] ${className}`}
     >
-      {/* Corner Cyber HUD Accents */}
-      <div className="absolute top-2 left-2.5 flex items-center gap-1.5 z-10 pointer-events-none">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#00f5d4] animate-ping" />
-        <span className="text-[10px] font-mono tracking-wider text-[#00f5d4]/80 uppercase">
-          {isRecording ? 'LIVE INPUT 16K' : isPlaying ? 'PLAYBACK ACTIVE' : 'ACOUSTIC MONITOR'}
-        </span>
-      </div>
-
-      <div className="absolute top-2 right-2.5 text-[9px] font-mono text-emerald-400/60 pointer-events-none uppercase">
-        OSCILLOSCOPE &bull; SPECTRUM MATRIX
-      </div>
-
       <canvas
         ref={canvasRef}
         style={{ width: '100%', height: `${height}px` }}

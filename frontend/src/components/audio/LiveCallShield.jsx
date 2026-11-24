@@ -519,57 +519,55 @@ export default function LiveCallShield({ user, username }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3.5 rounded-xl bg-[#0f1117] border border-white/[0.08] flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-[#0f1117] border border-white/[0.08] flex items-center justify-between">
               <span className="text-xs font-mono text-slate-400">Call Elapsed Time</span>
-              <span className="text-base font-mono font-bold text-white tracking-wider">
+              <span className="text-base font-mono font-bold text-white tracking-wider flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#00f5d4] animate-ping' : 'bg-slate-600'}`} />
                 {formatSeconds(callDuration)}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#0f1117] border border-white/[0.08] flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-[#0f1117] border border-white/[0.08] flex items-center justify-between">
               <span className="text-xs font-mono text-slate-400">Windows Processed</span>
               <span className="text-base font-mono font-bold text-[#00d4ff]">
-                {chunksAnalyzed} (3s slices)
+                {chunksAnalyzed} <span className="text-xs font-normal text-slate-400">scans</span>
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#0f1117] border border-white/[0.08] flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-[#0f1117] border border-white/[0.08] flex items-center justify-between">
               <span className="text-xs font-mono text-slate-400">Current Threat Verdict</span>
               <span
-                className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
+                className={`text-xs font-mono font-bold px-2.5 py-1 rounded-lg border ${
                   activeAlert
-                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                    ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.3)]'
                     : currentScore?.fake_score > 0.5
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_15px_rgba(52,211,153,0.25)]'
                 }`}
               >
-                {activeAlert ? 'AI SPOOF DETECTED' : isActive ? 'HUMAN SPEECH' : 'READY'}
+                {activeAlert ? '🚨 AI SPOOF DETECTED' : isActive ? '🛡️ HUMAN SPEECH' : 'STANDBY'}
               </span>
             </div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-[#04080d] p-3 overflow-hidden shadow-inner relative">
+            <div className="flex items-center justify-between px-2 pb-2 mb-1 border-b border-white/5 text-[11px] font-mono text-slate-400">
+              <span className="flex items-center gap-1.5 text-cyan-400">
+                <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#00f5d4] animate-pulse' : 'bg-slate-600'}`} />
+                {isActive ? 'Acoustic Signal Stream (16,000 Hz Monitored)' : 'Audio Hardware Offline'}
+              </span>
+              <span>{isActive ? `${detectedLanguage} Active` : 'Waiting for Call'}</span>
+            </div>
+
             <AudioWaveformVisualizer
               stream={audioStream}
               isRecording={isActive}
-              height={120}
+              height={110}
               showGrid={true}
             />
 
-            <div className="absolute top-4 left-4 flex items-center gap-2 pointer-events-none">
-              <span className="px-2.5 py-1 rounded bg-black/70 border border-white/10 text-[11px] font-mono text-slate-200 flex items-center gap-2">
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    isActive ? 'bg-[#00f5d4] animate-ping' : 'bg-slate-600'
-                  }`}
-                />
-                {isActive ? 'CALIBRATED STREAM (16,000 Hz MONO)' : 'DISCONNECTED'}
-              </span>
-            </div>
-
             {isProcessingChunk && (
-              <div className="absolute bottom-3 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#00d4ff]/20 border border-[#00d4ff]/40 text-[10px] font-mono text-[#00d4ff] animate-pulse">
+              <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/80 border border-[#00d4ff]/40 text-[10px] font-mono text-[#00d4ff] shadow-lg animate-pulse">
                 <Activity size={12} className="animate-spin" />
                 Analyzing 3s Audio Window...
               </div>
