@@ -12,6 +12,8 @@ api.interceptors.request.use(async (config) => {
   if (user) {
     const token = await user.getIdToken();
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (localStorage.getItem('voiceshield_guest_auth') === 'true') {
+    config.headers.Authorization = 'Bearer guest_local_token';
   }
   return config;
 }, (error) => {

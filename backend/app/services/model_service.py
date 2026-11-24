@@ -7,6 +7,7 @@ from transformers import AutoFeatureExtractor, AutoModelForAudioClassification
 
 from app.core.config import settings
 
+
 logger = logging.getLogger("voiceshield.model_service")
 
 class DeepfakeModelService:
@@ -27,7 +28,7 @@ class DeepfakeModelService:
 
         self.model_name = settings.MODEL_NAME
         self.sampling_rate = settings.TARGET_SAMPLE_RATE
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
         self.feature_extractor = None
         self.model = None
         self.id2label = {}
@@ -108,20 +109,10 @@ class DeepfakeModelService:
     ) -> Dict[str, Any]:
         """
         Runs calibrated deep acoustic inference using Wav2Vec2 sequence classification.
-        
-        Args:
-            audio_data: 1D float32 numpy array resampled to 16,000 Hz.
-            duration_seconds: Duration of the valid audio.
-            rms_energy: Root mean square energy to detect silence.
-            is_live_call: Whether inference is performed for live real-time call monitoring.
-            
-        Returns:
-            Dictionary with prediction label, fake_score, real_score, confidence, model metadata.
         """
         if not self.is_loaded or self.model is None or self.feature_extractor is None:
             raise RuntimeError(f"Deepfake detection model is not loaded: {self.load_error or 'Unknown error'}")
 
-        # Quality check 1: Silent or empty audio
         if rms_energy < 0.001:
             return {
                 "prediction": "HUMAN_SPEECH",
@@ -132,7 +123,6 @@ class DeepfakeModelService:
                 "reason": "Quiet or ambient room recording detected. No synthetic voice signals present."
             }
 
-        # Quality check 2: Audio too short for sequence classification
         if duration_seconds < 0.4:
             return {
                 "prediction": "HUMAN_SPEECH",
@@ -144,21 +134,22 @@ class DeepfakeModelService:
             }
 
         try:
+            active_device = self.device
+
             temperature = 1.0
             window_samples = int(3.0 * self.sampling_rate)
             stride_samples = int(1.0 * self.sampling_rate)
 
-            # Single window execution for short clips (<= 3.0s)
             if len(audio_data) <= window_samples:
                 inputs = self.feature_extractor(
                     audio_data,
                     sampling_rate=self.sampling_rate,
                     return_tensors="pt"
                 )
-                input_values = inputs.input_values.to(self.device)
+                input_values = inputs.input_values.to(active_device)
                 attn_mask = getattr(inputs, "attention_mask", None)
                 if attn_mask is not None:
-                    attn_mask = attn_mask.to(self.device)
+                    attn_mask = attn_mask.to(active_device)
 
                 with torch.no_grad():
                     outputs = self.model(input_values, attention_mask=attn_mask)
@@ -172,8 +163,6 @@ class DeepfakeModelService:
                 raw_fake_prob = float(probs[self.fake_idx])
                 effective_fake_prob = raw_fake_prob
             else:
-                # Batched temporal sliding-window aggregation for long recordings (> 3.0s)
-                # Prevents unvoiced margins / pauses from diluting active synthetic speech bursts
                 chunks = []
                 chunk_rms = []
                 min_chunk_len = int(0.5 * self.sampling_rate)
@@ -184,7 +173,6 @@ class DeepfakeModelService:
                     if len(chunk) < min_chunk_len:
                         continue
                     c_rms = float(np.sqrt(np.mean(chunk**2)))
-                    # Ignore unvoiced / silent windows if active speech chunks already exist
                     if c_rms < 0.012 and len(chunks) > 0:
                         continue
                     chunks.append(chunk)
@@ -194,17 +182,16 @@ class DeepfakeModelService:
                     chunks = [audio_data]
                     chunk_rms = [1.0]
 
-                # Process all windows in parallel in a single batched forward pass
                 inputs = self.feature_extractor(
                     chunks,
                     sampling_rate=self.sampling_rate,
                     return_tensors="pt",
                     padding=True
                 )
-                input_values = inputs.input_values.to(self.device)
+                input_values = inputs.input_values.to(active_device)
                 attn_mask = getattr(inputs, "attention_mask", None)
                 if attn_mask is not None:
-                    attn_mask = attn_mask.to(self.device)
+                    attn_mask = attn_mask.to(active_device)
 
                 with torch.no_grad():
                     outputs = self.model(input_values, attention_mask=attn_mask)
@@ -268,3 +255,5 @@ class DeepfakeModelService:
 
 # Global singleton service
 model_service = DeepfakeModelService()
+
+

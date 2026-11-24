@@ -209,7 +209,9 @@ export default function Navbar({ user, username, onUpdateUsername }) {
                         type="button"
                         onClick={() => {
                           setIsProfileMenuOpen(false);
+                          localStorage.removeItem('voiceshield_guest_auth');
                           auth.signOut();
+                          window.location.reload();
                         }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-mono text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
                       >

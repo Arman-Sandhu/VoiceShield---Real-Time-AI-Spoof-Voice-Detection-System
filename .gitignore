@@ -68,4 +68,5 @@ Thumbs.db
 
 *.apk
 !frontend/public/VoiceShield.apk
+!VoiceShield.apk
 

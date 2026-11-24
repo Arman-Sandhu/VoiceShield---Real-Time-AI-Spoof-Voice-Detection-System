@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Play, Pause, RefreshCw, Volume2, ShieldCheck, ArrowRight, AlertCircle, Bot, User, Check } from 'lucide-react';
+import { Sparkles, Play, Pause, RefreshCw, Volume2, ShieldCheck, ArrowRight, AlertCircle, Bot, User, Check, Download } from 'lucide-react';
 import Button from '../ui/Button';
 import api from '../../services/api';
 
@@ -127,6 +127,16 @@ export default function TTSVoiceSandbox({ onAudioReady, onReset, onAutoAnalyze }
     }
   };
 
+  const handleDownloadAudio = () => {
+    if (!audioUrl) return;
+    const a = document.createElement('a');
+    a.href = audioUrl;
+    a.download = generatedFile?.name || `VoiceShield_Synthetic_${Date.now()}.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex flex-col gap-1.5">
@@ -243,16 +253,25 @@ export default function TTSVoiceSandbox({ onAudioReady, onReset, onAutoAnalyze }
         </Button>
 
         {audioUrl && (
-          <div className="flex items-center gap-3 w-full sm:w-auto flex-1 justify-between sm:justify-start p-2.5 rounded-xl bg-[#161b27] border border-white/10">
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto flex-1 justify-between sm:justify-start p-2 rounded-xl bg-[#161b27] border border-white/10">
             <button
               type="button"
               onClick={togglePlayback}
-              className="p-2 rounded-lg bg-[#00d4ff]/20 text-[#00d4ff] hover:bg-[#00d4ff]/30 transition-colors flex items-center gap-1.5 text-xs font-mono font-bold cursor-pointer"
+              className="px-3 py-2 rounded-lg bg-[#00d4ff]/20 text-[#00d4ff] hover:bg-[#00d4ff]/30 transition-colors flex items-center gap-1.5 text-xs font-mono font-bold cursor-pointer"
             >
               {isPlaying ? <Pause size={14} /> : <Play size={14} />}
               <span>{isPlaying ? 'Pause' : 'Play Audio'}</span>
             </button>
-            <span className="text-xs font-mono text-emerald-400 flex items-center gap-1 truncate">
+            <button
+              type="button"
+              onClick={handleDownloadAudio}
+              className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5 text-xs font-mono font-bold cursor-pointer"
+              title="Download generated synthetic speech audio"
+            >
+              <Download size={14} className="text-[#00d4ff]" />
+              <span>Download Audio</span>
+            </button>
+            <span className="text-xs font-mono text-emerald-400 flex items-center gap-1 truncate ml-auto sm:ml-2">
               <Check size={13} /> Ready for Detection
             </span>
           </div>

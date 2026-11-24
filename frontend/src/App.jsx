@@ -22,6 +22,12 @@ function App() {
 
   const fetchUserProfile = async (currentUser) => {
     if (!currentUser) {
+      if (localStorage.getItem('voiceshield_guest_auth') === 'true') {
+        setUser({ uid: 'guest_local_tester', email: 'guest@voiceshield.local', displayName: 'Local Tester' });
+        setUsername('Local Tester');
+        setLoading(false);
+        return;
+      }
       setUser(null);
       setUsername('');
       setLoading(false);
@@ -101,7 +107,7 @@ function App() {
             {/* Authentication */}
             <Route
               path="/login"
-              element={!user ? <Login onLoginSuccess={(name) => { if (name) setUsername(name); }} /> : <Navigate to="/dashboard" replace />}
+              element={!user ? <Login onLoginSuccess={(name, guestUser) => { if (guestUser) setUser(guestUser); if (name) setUsername(name); }} /> : <Navigate to="/dashboard" replace />}
             />
 
             {/* Protected Workspace Pages */}

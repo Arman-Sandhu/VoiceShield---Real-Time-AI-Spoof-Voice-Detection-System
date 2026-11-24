@@ -5,6 +5,7 @@ import numpy as np
 from typing import Dict, Any, Tuple
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 
+
 SENSITIVE_PATTERNS = [
     r"\b(otp|one time password|pin|cvv|password|passcode)\b",
     r"\b(bank account|account number|routing number|ifsc)\b",
@@ -50,7 +51,7 @@ class SpeechIntelligenceService:
         if getattr(self, "_initialized", False):
             return
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
         self.model_name = "openai/whisper-tiny"
         self.processor = None
         self.model = None
@@ -80,10 +81,12 @@ class SpeechIntelligenceService:
             }
 
         try:
+            active_device = self.device
+
             audio_segment = audio_data[:min(len(audio_data), 16000 * 10)]
             inputs = self.processor(audio_segment, sampling_rate=sampling_rate, return_tensors="pt")
-            input_features = inputs.input_features.to(self.device)
-            decoder_input_ids = torch.tensor([[self.model.config.decoder_start_token_id]], device=self.device)
+            input_features = inputs.input_features.to(active_device)
+            decoder_input_ids = torch.tensor([[self.model.config.decoder_start_token_id]], device=active_device)
 
             with torch.no_grad():
                 out = self.model(input_features, decoder_input_ids=decoder_input_ids)
@@ -138,9 +141,11 @@ class SpeechIntelligenceService:
             }
 
         try:
+            active_device = self.device
+
             audio_segment = audio_data[:min(len(audio_data), 16000 * 15)]
             inputs = self.processor(audio_segment, sampling_rate=sampling_rate, return_tensors="pt")
-            input_features = inputs.input_features.to(self.device)
+            input_features = inputs.input_features.to(active_device)
 
             with torch.no_grad():
                 predicted_ids = self.model.generate(
@@ -190,4 +195,6 @@ class SpeechIntelligenceService:
             }
 
 speech_intelligence = SpeechIntelligenceService()
+
+
 

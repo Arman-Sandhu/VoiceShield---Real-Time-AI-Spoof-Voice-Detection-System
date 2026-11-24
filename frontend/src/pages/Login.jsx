@@ -11,7 +11,7 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider } from '../services/auth';
 import api from '../services/api';
-import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import ShieldMicLogo from '../components/ui/ShieldMicLogo';
@@ -128,6 +128,8 @@ export default function Login({ onLoginSuccess }) {
         userFriendlyMsg = 'An account with this email address already exists. Please sign in instead.';
       } else if (err.code === 'auth/network-request-failed') {
         userFriendlyMsg = 'Network connection issue. Please check your internet connection.';
+      } else if (err.code === 'auth/unauthorized-domain' || (err.message && err.message.includes('unauthorized-domain'))) {
+        userFriendlyMsg = 'Firebase Domain Restriction: Local IP (10.11.6.100) is not authorized in Firebase Console (Authentication > Settings > Authorized Domains). Use the "Continue as Local Guest Tester" button below to test on mobile immediately!';
       }
       setError(userFriendlyMsg);
     } finally {
@@ -165,11 +167,25 @@ export default function Login({ onLoginSuccess }) {
           setError('Browser storage isolation blocked the redirect. Please open VoiceShield in a regular (non-Incognito) browser window.');
         } else if (msg.includes('missing initial state') || err.code === 'auth/operation-not-supported-in-this-environment') {
           setError('Google Sign-in is restricted in this environment. Please open in Google Chrome or use Email & Password below.');
+        } else if (err.code === 'auth/unauthorized-domain' || (msg && msg.includes('unauthorized-domain'))) {
+          setError('Firebase Domain Restriction: Local IP (10.11.6.100) is not authorized in Firebase Console (Authentication > Settings > Authorized Domains). Use "Continue as Local Guest Tester" below to test on mobile immediately!');
         } else {
           setError(msg || 'Google sign-in failed. Please try again.');
         }
         setLoading(false);
       }
+    }
+  };
+
+  const handleGuestAccess = () => {
+    localStorage.setItem('voiceshield_guest_auth', 'true');
+    const guestUser = {
+      uid: 'guest_local_tester',
+      email: 'guest@voiceshield.local',
+      displayName: 'Local Tester'
+    };
+    if (onLoginSuccess) {
+      onLoginSuccess('Local Tester', guestUser);
     }
   };
 
@@ -412,6 +428,20 @@ export default function Login({ onLoginSuccess }) {
             <span>Sign In with Google</span>
           </div>
         </Button>
+
+        <div className="mt-4 pt-4 border-t border-white/[0.08] flex flex-col items-center">
+          <button
+            type="button"
+            onClick={handleGuestAccess}
+            className="w-full py-2.5 px-4 rounded-xl bg-white/5 border border-white/10 hover:bg-[#00d4ff]/10 hover:border-[#00d4ff]/30 text-slate-300 hover:text-white text-xs font-mono transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+          >
+            <ShieldCheck size={15} className="text-[#00f5d4]" />
+            <span>Continue as Local Guest Tester</span>
+          </button>
+          <p className="text-[10px] text-slate-500 font-mono mt-2 text-center">
+            For local mobile testing (10.11.6.100) without Firebase domain whitelisting
+          </p>
+        </div>
       </Card>
     </div>
   );
