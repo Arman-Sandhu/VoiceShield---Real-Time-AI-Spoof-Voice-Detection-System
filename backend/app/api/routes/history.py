@@ -159,4 +159,76 @@ def update_user_username(
         message="Username updated successfully in user table and analysis history."
     )
 
+class RequestEmailOTPRequest(BaseModel):
+    new_email: str
+
+class VerifyEmailOTPRequest(BaseModel):
+    new_email: str
+    otp: str
+
+@router.post("/user/email/request-otp")
+def request_email_otp(
+    payload: RequestEmailOTPRequest,
+    user: dict = Depends(verify_token)
+):
+    clean_email = payload.new_email.strip().lower()
+    if not clean_email or "@" not in clean_email or "." not in clean_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide a valid email address."
+        )
+
+    if clean_email == (user.get("email") or "").strip().lower():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New email must be different from current email."
+        )
+
+    if history_service.is_email_taken(clean_email, exclude_user_id=user["uid"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This email address is already in use by another account."
+        )
+
+    otp = history_service.generate_email_otp(user["uid"], clean_email)
+    return {
+        "status": "success",
+        "message": f"Verification code sent to {clean_email}.",
+        "debug_otp": otp
+    }
+
+@router.post("/user/email/verify-otp")
+def verify_email_otp(
+    payload: VerifyEmailOTPRequest,
+    user: dict = Depends(verify_token)
+):
+    clean_email = payload.new_email.strip().lower()
+    clean_otp = payload.otp.strip()
+
+    if not clean_email or not clean_otp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email and OTP are both required."
+        )
+
+    if history_service.is_email_taken(clean_email, exclude_user_id=user["uid"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This email address is already in use by another account."
+        )
+
+    is_valid = history_service.verify_email_otp(user["uid"], clean_email, clean_otp)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification code. Please request a new code."
+        )
+
+    result = history_service.update_email(user["uid"], clean_email)
+    return {
+        "status": "success",
+        "email": result["email"],
+        "message": "Email address updated successfully across user subspace."
+    }
+
 

@@ -114,6 +114,10 @@ class HistoryService:
                     cursor.execute("ALTER TABLE analysis_history ADD COLUMN username TEXT DEFAULT '';")
                 if "user_email" not in existing_cols:
                     cursor.execute("ALTER TABLE analysis_history ADD COLUMN user_email TEXT DEFAULT '';")
+                if "detected_language" not in existing_cols:
+                    cursor.execute("ALTER TABLE analysis_history ADD COLUMN detected_language TEXT DEFAULT 'English';")
+                if "transcript" not in existing_cols:
+                    cursor.execute("ALTER TABLE analysis_history ADD COLUMN transcript TEXT DEFAULT '';")
                 
                 # Backfill users in SQLite from any historical records
                 cursor.execute("""
@@ -300,6 +304,104 @@ class HistoryService:
 
         return {"user_id": user_id, "username": clean_username}
 
+    def is_email_taken(self, email: str, exclude_user_id: Optional[str] = None) -> bool:
+        clean_email = (email or "").strip().lower()
+        if not clean_email:
+            return False
+
+        if self.supabase:
+            try:
+                res = self.supabase.table("users").select("user_id").ilike("email", clean_email).execute()
+                if res.data:
+                    for u in res.data:
+                        if u.get("user_id") != exclude_user_id:
+                            return True
+            except Exception:
+                pass
+
+        try:
+            with sqlite3.connect(settings.SQLITE_DB_PATH) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT user_id FROM users WHERE LOWER(email) = ?", (clean_email,))
+                rows = cursor.fetchall()
+                for r in rows:
+                    if r[0] != exclude_user_id:
+                        return True
+        except Exception:
+            pass
+
+        try:
+            from firebase_admin import auth as fb_admin_auth
+            fb_user = fb_admin_auth.get_user_by_email(clean_email)
+            if fb_user and fb_user.uid != exclude_user_id:
+                return True
+        except Exception:
+            pass
+
+        return False
+
+    def generate_email_otp(self, user_id: str, new_email: str) -> str:
+        import secrets, time
+        clean_email = new_email.strip().lower()
+        otp = str(secrets.randbelow(900000) + 100000)
+        if not hasattr(self, "_email_otp_cache"):
+            self._email_otp_cache = {}
+        self._email_otp_cache[user_id] = {
+            "email": clean_email,
+            "otp": otp,
+            "expires_at": time.time() + 600
+        }
+        logger.info(f"[EmailChangeOTP] Generated OTP for user {user_id} -> {clean_email}: {otp}")
+        return otp
+
+    def verify_email_otp(self, user_id: str, new_email: str, otp: str) -> bool:
+        import time
+        if not hasattr(self, "_email_otp_cache"):
+            return False
+        record = self._email_otp_cache.get(user_id)
+        if not record:
+            return False
+        if time.time() > record["expires_at"]:
+            del self._email_otp_cache[user_id]
+            return False
+        if record["email"] != new_email.strip().lower() or record["otp"] != otp.strip():
+            return False
+
+        del self._email_otp_cache[user_id]
+        return True
+
+    def update_email(self, user_id: str, new_email: str) -> Dict[str, Any]:
+        clean_email = (new_email or "").strip().lower()
+        if not clean_email:
+            raise ValueError("Email cannot be empty.")
+
+        if self.supabase:
+            try:
+                self.supabase.table("users").update({"email": clean_email}).eq("user_id", user_id).execute()
+                self.supabase.table("analysis_history").update({"user_email": clean_email}).eq("user_id", user_id).execute()
+                logger.info(f"Supabase: Updated email to '{clean_email}' for user {user_id}")
+            except Exception as e:
+                logger.warning(f"Supabase update_email error: {e}")
+
+        try:
+            with sqlite3.connect(settings.SQLITE_DB_PATH) as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE users SET email = ? WHERE user_id = ?", (clean_email, user_id))
+                cursor.execute("UPDATE analysis_history SET user_email = ? WHERE user_id = ?", (clean_email, user_id))
+                conn.commit()
+                logger.info(f"SQLite: Updated email to '{clean_email}' for user {user_id}")
+        except Exception as e:
+            logger.error(f"SQLite update_email error: {e}")
+
+        try:
+            from firebase_admin import auth as fb_admin_auth
+            fb_admin_auth.update_user(user_id, email=clean_email)
+            logger.info(f"Firebase Admin: Updated email to '{clean_email}' for user {user_id}")
+        except Exception as fb_err:
+            logger.debug(f"Firebase Admin email update notice: {fb_err}")
+
+        return {"user_id": user_id, "email": clean_email}
+
     def save_analysis(
         self,
         event_id: str,
@@ -316,25 +418,21 @@ class HistoryService:
         file_name: str = "",
         username: Optional[str] = None,
         user_email: Optional[str] = None,
+        detected_language: str = "English",
+        transcript: str = "",
         is_flagged: bool = False
     ) -> Dict[str, Any]:
-        """
-        Saves analysis record in the user's isolated subspace and updates aggregate metrics.
-        Attempts Supabase first, falls back to SQLite if Supabase is offline.
-        """
         created_at_iso = datetime.now(timezone.utc).isoformat()
         is_spoof = (prediction == "AI_GENERATED" or fake_score >= 0.5)
         is_recorded = (mode == "record")
         norm_duration = max(0.0, round(duration, 2))
 
-        # Resolve username: use provided or fetch from users table
         effective_username = (username or "").strip()
         if not effective_username:
             effective_username = self.get_user_username(user_id)
 
         resolved_email = user_email or f"{user_id}@voiceshield.internal"
 
-        # Ensure user subspace exists first (fulfilling foreign key constraint)
         self.ensure_user(user_id=user_id, email=resolved_email, username=effective_username)
 
         saved_record = {
@@ -352,6 +450,8 @@ class HistoryService:
             "file_name": file_name,
             "username": effective_username,
             "user_email": resolved_email,
+            "detected_language": detected_language,
+            "transcript": transcript,
             "is_flagged": is_flagged,
             "created_at": created_at_iso
         }
@@ -391,8 +491,9 @@ class HistoryService:
                     INSERT INTO analysis_history (
                         event_id, user_id, mode, duration, model_name,
                         fake_score, real_score, prediction, context_risk,
-                        final_risk, risk_explanation, file_name, username, user_email, is_flagged, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        final_risk, risk_explanation, file_name, username, user_email,
+                        detected_language, transcript, is_flagged, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     event_id,
                     user_id,
@@ -408,6 +509,8 @@ class HistoryService:
                     file_name,
                     effective_username,
                     resolved_email,
+                    detected_language,
+                    transcript,
                     1 if is_flagged else 0,
                     created_at_iso
                 ))
@@ -548,6 +651,8 @@ class HistoryService:
                     item["file_name"] = item.get("file_name", "")
                     item["username"] = item.get("username", "")
                     item["user_email"] = item.get("user_email", "")
+                    item["detected_language"] = item.get("detected_language") or "English"
+                    item["transcript"] = item.get("transcript") or ""
                     results.append(item)
                 return results
         except Exception as e:

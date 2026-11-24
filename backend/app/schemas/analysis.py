@@ -38,6 +38,11 @@ class AnalysisResultResponse(BaseModel):
     timestamp: str
     file_name: Optional[str] = None
     biometric_indicators: Optional[List[str]] = None
+    detected_language: Optional[str] = "English"
+    language_code: Optional[str] = "en"
+    language_confidence: Optional[float] = 0.95
+    transcript: Optional[str] = ""
+    detected_triggers: Optional[List[str]] = None
     is_flagged: bool = False
     status: str = "success"
 
@@ -57,6 +62,9 @@ class AnalysisHistoryItem(BaseModel):
     file_name: Optional[str] = None
     username: Optional[str] = None
     user_email: Optional[str] = None
+    detected_language: Optional[str] = "English"
+    language_code: Optional[str] = "en"
+    transcript: Optional[str] = ""
     is_flagged: bool = False
     created_at: str
 
@@ -91,6 +99,8 @@ class LiveCallChunkResponse(BaseModel):
     recommendation: str
     vibrate_pattern: List[int]
     biometric_indicators: Optional[List[str]] = None
+    detected_language: Optional[str] = "English"
+    language_code: Optional[str] = "en"
     duration_seconds: float
     status: str = "success"
 

@@ -10,6 +10,7 @@ from app.services.model_service import model_service
 from app.services.risk_service import assess_contextual_risk
 from app.services.history_service import history_service
 from app.services.hf_sync_service import hf_sync_service
+from app.services.speech_intelligence_service import speech_intelligence
 from app.schemas.analysis import AnalysisResultResponse, LiveCallChunkResponse
 
 logger = logging.getLogger("voiceshield.analysis_route")
@@ -88,13 +89,19 @@ async def analyze_file(
     confidence = model_result.get("confidence", max(fake_score, real_score))
     model_name = model_result["model_name"]
 
-    # 4. Contextual Risk Assessment
+    lang_info = speech_intelligence.detect_language(audio_data)
+    auto_context = speech_intelligence.infer_contextual_risk(audio_data)
+
+    effective_unknown = bool(is_caller_unknown or auto_context["is_caller_unknown"])
+    effective_sensitive = bool(is_sensitive_request or auto_context["is_sensitive_request"])
+    effective_urgency = bool(urgency_flag or auto_context["urgency_flag"])
+
     risk_result = assess_contextual_risk(
         fake_score=fake_score,
         prediction=prediction,
-        is_caller_unknown=is_caller_unknown,
-        is_sensitive_request=is_sensitive_request,
-        urgency_flag=urgency_flag,
+        is_caller_unknown=effective_unknown,
+        is_sensitive_request=effective_sensitive,
+        urgency_flag=effective_urgency,
         is_live_call=is_live
     )
 
@@ -102,14 +109,13 @@ async def analyze_file(
     context_risk_level = risk_result["context_risk_level"]
     risk_explanation = risk_result["risk_explanation"]
 
-    # 5. Generate Event ID and Persist to Database
     event_id = f"VS-{str(uuid.uuid4())[:8].upper()}"
     timestamp_iso = datetime.now(timezone.utc).isoformat()
 
     context_flags = {
-        "is_caller_unknown": is_caller_unknown,
-        "is_sensitive_request": is_sensitive_request,
-        "urgency_flag": urgency_flag
+        "is_caller_unknown": effective_unknown,
+        "is_sensitive_request": effective_sensitive,
+        "urgency_flag": effective_urgency
     }
 
     effective_file_name = (
@@ -134,12 +140,13 @@ async def analyze_file(
             file_name=effective_file_name,
             username=username or user.get("name"),
             user_email=user.get("email"),
+            detected_language=lang_info["language"],
+            transcript=auto_context.get("transcript", ""),
             is_flagged=False
         )
     except Exception as db_err:
         logger.error(f"Failed to record analysis to database: {db_err}")
 
-    # 5. Background sync to Hugging Face Telemetry Vault (audios/ + metadata.jsonl)
     try:
         background_tasks.add_task(
             hf_sync_service.sync_record,
@@ -176,6 +183,11 @@ async def analyze_file(
         timestamp=timestamp_iso,
         file_name=effective_file_name,
         biometric_indicators=model_result.get("biometric_indicators", []),
+        detected_language=lang_info["language"],
+        language_code=lang_info["language_code"],
+        language_confidence=lang_info["confidence"],
+        transcript=auto_context.get("transcript", ""),
+        detected_triggers=auto_context.get("detected_triggers", []),
         is_flagged=False,
         status="success"
     )
@@ -186,10 +198,6 @@ async def analyze_live_chunk(
     file: UploadFile = File(..., description="Short 3-second audio chunk"),
     user: dict = Depends(verify_token)
 ):
-    """
-    Ultra-low-latency real-time inference endpoint for live phone call assistance.
-    Processes 3-second streaming audio chunks with debounced alert recommendations and vibration patterns.
-    """
     if not file or not file.filename:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No audio chunk provided.")
 
@@ -217,12 +225,18 @@ async def analyze_live_chunk(
     real_score = result["real_score"]
     prediction = result["prediction"]
 
-    # Debounced alert triggers & vibration patterns for mobile live calls
-    if fake_score >= 0.75:
+    lang_info = speech_intelligence.detect_language(audio_data)
+
+    logger.info(
+        f"[LiveCallWindow] dur={duration:.2f}s, rms={rms_energy:.4f}, fake={fake_score:.4f}, "
+        f"real={real_score:.4f}, pred={prediction}, lang={lang_info['language']} ({lang_info['confidence']*100:.1f}%)"
+    )
+
+    if fake_score >= 0.70:
         is_alert = True
         alert_level = "CRITICAL"
         recommendation = f"CRITICAL SPOOF DETECTED ({fake_score * 100:.1f}% AI Clone). High risk of synthetic voice impersonation!"
-        vibrate_pattern = [200, 100, 200, 100, 300]
+        vibrate_pattern = [250, 150, 250, 150, 350]
     elif fake_score >= 0.50:
         is_alert = True
         alert_level = "CAUTION"
@@ -244,6 +258,8 @@ async def analyze_live_chunk(
         recommendation=recommendation,
         vibrate_pattern=vibrate_pattern,
         biometric_indicators=result.get("biometric_indicators", []),
+        detected_language=lang_info["language"],
+        language_code=lang_info["language_code"],
         duration_seconds=round(duration, 2),
         status="success"
     )

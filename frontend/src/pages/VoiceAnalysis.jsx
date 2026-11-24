@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, UploadCloud, Cpu, AlertCircle, ArrowLeft, Sparkles, PhoneCall } from 'lucide-react';
+import { Mic, UploadCloud, Cpu, AlertCircle, ArrowLeft, Sparkles, PhoneCall, Bot, CheckCircle2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Card from '../components/ui/Card';
@@ -10,12 +10,13 @@ import ShieldMicLogo from '../components/ui/ShieldMicLogo';
 import AudioRecorder from '../components/audio/AudioRecorder';
 import AudioUploader from '../components/audio/AudioUploader';
 import LiveCallShield from '../components/audio/LiveCallShield';
+import TTSVoiceSandbox from '../components/audio/TTSVoiceSandbox';
 import ContextForm from '../components/analysis/ContextForm';
 import AnalysisResult from './AnalysisResult';
 
 export default function VoiceAnalysis({ user, username }) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('record'); // 'record', 'upload', or 'live_call'
+  const [activeTab, setActiveTab] = useState('record');
   const [audioFile, setAudioFile] = useState(null);
   const [audioBlob, setAudioBlob] = useState(null);
   const [contextFlags, setContextFlags] = useState({
@@ -47,19 +48,18 @@ export default function VoiceAnalysis({ user, username }) {
 
   const runAnalysis = async () => {
     if (!audioFile) {
-      setErrorMessage('Please record or upload an audio clip before starting analysis.');
+      setErrorMessage('Please record, upload, or generate an audio sample before starting analysis.');
       return;
     }
 
     setAnalyzing(true);
     setErrorMessage(null);
 
-    // Realistic progressive status sequence
     const phases = [
       'Calibrating Acoustic Waveform Signal',
       'Running VoiceShield Neural Feature Extractor',
-      'Classifying Acoustic Deepfake Probabilities',
-      'Synthesizing Contextual Social Engineering Risk',
+      'Analyzing Spoken Language & Contextual Signals',
+      'Classifying Deepfake Spoof Probabilities',
       'Securing Forensic Telemetry Vault'
     ];
 
@@ -67,7 +67,7 @@ export default function VoiceAnalysis({ user, username }) {
     const interval = setInterval(() => {
       phaseIndex = (phaseIndex + 1) % phases.length;
       setAnalysisPhase(phases[phaseIndex]);
-    }, 600);
+    }, 550);
 
     const formData = new FormData();
     formData.append('file', audioFile);
@@ -75,7 +75,7 @@ export default function VoiceAnalysis({ user, username }) {
     formData.append('is_caller_unknown', contextFlags.is_caller_unknown ? 'true' : 'false');
     formData.append('is_sensitive_request', contextFlags.is_sensitive_request ? 'true' : 'false');
     formData.append('urgency_flag', contextFlags.urgency_flag ? 'true' : 'false');
-    formData.append('mode', activeTab);
+    formData.append('mode', activeTab === 'tts_sandbox' ? 'upload' : activeTab);
     const effectiveUsername = username || user?.displayName || '';
     if (effectiveUsername) {
       formData.append('username', effectiveUsername);
@@ -90,7 +90,6 @@ export default function VoiceAnalysis({ user, username }) {
       setAnalysisResult(response.data);
     } catch (err) {
       clearInterval(interval);
-      console.error('Analysis failed:', err);
       const msg =
         err.response?.data?.detail ||
         'Analysis pipeline failed. Please check audio format and try again.';
@@ -101,18 +100,11 @@ export default function VoiceAnalysis({ user, username }) {
   };
 
   const resetAll = () => {
-    setAudioFile(null);
-    setAudioBlob(null);
+    handleAudioReset();
     setAnalysisResult(null);
     setErrorMessage(null);
-    setContextFlags({
-      is_caller_unknown: false,
-      is_sensitive_request: false,
-      urgency_flag: false
-    });
   };
 
-  // If analysis completed, render the full Analysis Result view
   if (analysisResult) {
     return (
       <AnalysisResult
@@ -126,7 +118,6 @@ export default function VoiceAnalysis({ user, username }) {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 flex flex-col gap-6 sm:gap-8">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link to="/dashboard" className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white transition-colors">
@@ -147,15 +138,14 @@ export default function VoiceAnalysis({ user, username }) {
         </Badge>
       </div>
 
-      {/* Input Method Tabs - 3 Modes: Record, Upload, Live Call Shield */}
-      <div className="grid grid-cols-3 rounded-2xl bg-[#0f1117] p-1.5 border border-white/[0.08] shadow-lg">
+      <div className="grid grid-cols-2 sm:grid-cols-4 rounded-2xl bg-[#0f1117] p-1.5 border border-white/[0.08] shadow-lg gap-1">
         <button
           type="button"
           onClick={() => {
             setActiveTab('record');
             handleAudioReset();
           }}
-          className={`flex items-center justify-center gap-2 py-3 text-xs sm:text-sm font-semibold rounded-xl transition-all ${
+          className={`flex items-center justify-center gap-2 py-3 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === 'record'
               ? 'bg-[#00d4ff]/15 text-[#00d4ff] shadow-[0_0_15px_rgba(0,212,255,0.25)] border border-[#00d4ff]/30'
               : 'text-slate-400 hover:text-white'
@@ -171,7 +161,7 @@ export default function VoiceAnalysis({ user, username }) {
             setActiveTab('upload');
             handleAudioReset();
           }}
-          className={`flex items-center justify-center gap-2 py-3 text-xs sm:text-sm font-semibold rounded-xl transition-all ${
+          className={`flex items-center justify-center gap-2 py-3 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === 'upload'
               ? 'bg-[#00d4ff]/15 text-[#00d4ff] shadow-[0_0_15px_rgba(0,212,255,0.25)] border border-[#00d4ff]/30'
               : 'text-slate-400 hover:text-white'
@@ -184,10 +174,26 @@ export default function VoiceAnalysis({ user, username }) {
         <button
           type="button"
           onClick={() => {
+            setActiveTab('tts_sandbox');
+            handleAudioReset();
+          }}
+          className={`flex items-center justify-center gap-2 py-3 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+            activeTab === 'tts_sandbox'
+              ? 'bg-[#a855f7]/20 text-[#c084fc] shadow-[0_0_20px_rgba(168,85,247,0.35)] border border-[#a855f7]/40 font-bold'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Bot size={15} />
+          <span className="truncate">AI Voice Sandbox</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
             setActiveTab('live_call');
             handleAudioReset();
           }}
-          className={`flex items-center justify-center gap-2 py-3 text-xs sm:text-sm font-semibold rounded-xl transition-all ${
+          className={`flex items-center justify-center gap-2 py-3 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === 'live_call'
               ? 'bg-[#00f5d4]/15 text-[#00f5d4] shadow-[0_0_20px_rgba(0,245,212,0.3)] border border-[#00f5d4]/40 font-bold'
               : 'text-slate-400 hover:text-white'
@@ -198,15 +204,12 @@ export default function VoiceAnalysis({ user, username }) {
         </button>
       </div>
 
-      {/* Tab Panels */}
       {activeTab === 'live_call' ? (
         <div className="w-full">
-          <LiveCallShield />
+          <LiveCallShield user={user} username={username} />
         </div>
       ) : (
-        /* Main Workspace Layout - Aligned Grid */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
-          {/* Left Column: Audio Source Tab Selection and Input */}
           <div className="lg:col-span-7 flex flex-col">
             <Card variant="elevated" className="p-5 sm:p-7 flex flex-col justify-between h-full">
               <div>
@@ -215,26 +218,40 @@ export default function VoiceAnalysis({ user, username }) {
                     onAudioReady={handleAudioReady}
                     onReset={handleAudioReset}
                   />
-                ) : (
+                ) : activeTab === 'upload' ? (
                   <AudioUploader
                     onAudioReady={handleAudioReady}
                     onReset={handleAudioReset}
+                  />
+                ) : (
+                  <TTSVoiceSandbox
+                    onAudioReady={handleAudioReady}
+                    onReset={handleAudioReset}
+                    onAutoAnalyze={runAnalysis}
                   />
                 )}
               </div>
             </Card>
           </div>
 
-          {/* Right Column: Context Form and Action */}
           <div className="lg:col-span-5 flex flex-col">
             <Card variant="default" className="p-5 sm:p-7 flex flex-col justify-between h-full">
               <div>
+                <div className="mb-5 p-3.5 rounded-xl bg-[#00d4ff]/10 border border-[#00d4ff]/20 text-xs text-[#00d4ff] flex items-start gap-2.5">
+                  <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block mb-0.5">Automated Contextual Risk Inference</span>
+                    <span className="text-[11px] text-slate-300">
+                      Our neural speech intelligence model automatically extracts language, transcription, and caller urgency signals from the audio. Manual overrides below are optional.
+                    </span>
+                  </div>
+                </div>
+
                 <ContextForm
                   flags={contextFlags}
                   onChange={setContextFlags}
                 />
 
-                {/* Error Message */}
                 {errorMessage && (
                   <div className="mt-6 flex items-start gap-2.5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
                     <AlertCircle size={16} className="shrink-0 mt-0.5" />
@@ -243,68 +260,41 @@ export default function VoiceAnalysis({ user, username }) {
                 )}
               </div>
 
-              {/* Action Button & Scanning Visualizer */}
               <div className="mt-6 pt-6 border-t border-white/[0.08]">
                 {analyzing ? (
                   <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-[#0f1117]/95 border border-[#00f5d4]/30 text-center relative overflow-hidden shadow-[0_0_20px_rgba(0,245,212,0.08)]">
-                    {/* Contained Splash Screen Mic Shield Ripple Effect */}
-                    <div className="relative flex items-center justify-center w-28 h-28 my-1 pointer-events-none select-none">
-                      {/* Concentric outward ripples strictly contained inside card */}
-                      <div className="absolute inset-0 rounded-full border border-[#00f5d4]/45 animate-contained-ripple" />
-                      <div
-                        className="absolute inset-0 rounded-full border border-[#00d4ff]/35 animate-contained-ripple"
-                        style={{ animationDelay: '0.7s' }}
-                      />
-                      <div
-                        className="absolute inset-0 rounded-full border border-[#10b981]/25 animate-contained-ripple"
-                        style={{ animationDelay: '1.4s' }}
-                      />
-
-                      {/* Outer rotating dashed cyber reticles */}
-                      <div className="absolute w-20 h-20 rounded-full border border-dashed border-[#00f5d4]/35 animate-[spin_10s_linear_infinite]" />
-                      <div className="absolute w-24 h-24 rounded-full border border-dotted border-[#00d4ff]/20 animate-[spin_16s_linear_infinite_reverse]" />
-
-                      {/* Central Shield with nestled Mic Logo */}
-                      <div className="relative z-10 flex items-center justify-center">
-                        <ShieldMicLogo
-                          size={38}
-                          className="text-[#00f5d4] drop-shadow-[0_0_16px_rgba(0,245,212,0.85)]"
-                          micClassName="animate-pulse drop-shadow-[0_0_10px_rgba(0,245,212,0.95)]"
-                          strokeWidth={1.8}
-                        />
+                    <div className="relative mb-4 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#00f5d4]/20 to-[#00d4ff]/20 border border-[#00f5d4]/40 flex items-center justify-center text-[#00f5d4] shadow-[0_0_25px_rgba(0,245,212,0.25)]">
+                        <ShieldMicLogo size={28} className="animate-bounce" />
                       </div>
                     </div>
 
-                    {/* High-tech scanning laser bar */}
-                    <div className="w-44 h-1 bg-slate-800/80 rounded-full relative overflow-hidden border border-white/5 my-2 shadow-inner">
-                      <div className="h-full w-20 bg-gradient-to-r from-transparent via-[#00f5d4] to-transparent animate-cyber-scan" />
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="w-2 h-2 rounded-full bg-[#00f5d4] animate-ping" />
+                      <span className="text-xs font-mono uppercase tracking-wider text-[#00f5d4] font-semibold">
+                        Acoustic & Semantic Telemetry Active
+                      </span>
                     </div>
 
-                    <span className="text-xs font-mono uppercase text-[#00f5d4] tracking-wider font-semibold mb-1">
-                      Running Neural Acoustic Model
-                    </span>
-                    <p className="text-xs text-slate-300 font-mono">
+                    <p className="text-sm font-display font-medium text-white mb-2">
                       {analysisPhase}...
+                    </p>
+                    <p className="text-[11px] font-mono text-slate-400 max-w-xs">
+                      Evaluating waveform phonemes, phase continuity, and multilingual language signals.
                     </p>
                   </div>
                 ) : (
                   <Button
-                    id="run-analysis-button"
-                    data-testid="run-analysis-button"
                     variant="primary"
                     size="lg"
+                    icon={Sparkles}
                     onClick={runAnalysis}
                     disabled={!audioFile}
-                    icon={Sparkles}
-                    className="w-full shadow-[0_0_25px_rgba(0,212,255,0.3)]"
+                    className="w-full py-4 text-base font-bold shadow-[0_0_20px_rgba(0,212,255,0.25)]"
                   >
-                    Analyze Voice Authenticity
+                    Start Deep Audio Analysis
                   </Button>
                 )}
-
-                <p className="text-[11px] text-slate-500 text-center mt-3 font-mono">
-                  Audio is processed securely at 16,000 Hz. Calibrated temperature scaling applied.
-                </p>
               </div>
             </Card>
           </div>
@@ -313,4 +303,3 @@ export default function VoiceAnalysis({ user, username }) {
     </div>
   );
 }
-

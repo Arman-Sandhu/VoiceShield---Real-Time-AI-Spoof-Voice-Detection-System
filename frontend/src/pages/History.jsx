@@ -9,7 +9,9 @@ import {
   FileAudio,
   Flag,
   Pencil,
-  Check
+  Check,
+  Download,
+  Globe
 } from 'lucide-react';
 import api from '../services/api';
 import Card from '../components/ui/Card';
@@ -136,6 +138,37 @@ export default function History({ user, username }) {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleDownloadReport = (record, e) => {
+    if (e) e.stopPropagation();
+    const reportContent = {
+      reportType: 'VoiceShield Forensic Verification Audit Record',
+      eventId: record.event_id,
+      timestamp: record.created_at,
+      fileName: record.file_name || `${record.event_id}.wav`,
+      mode: record.mode,
+      durationSeconds: record.duration,
+      verdict: record.prediction,
+      syntheticProbability: record.fake_score !== undefined ? `${(record.fake_score * 100).toFixed(2)}%` : 'N/A',
+      humanProbability: record.real_score !== undefined ? `${(record.real_score * 100).toFixed(2)}%` : 'N/A',
+      finalRisk: record.final_risk,
+      riskSummary: record.risk_explanation,
+      detectedLanguage: record.detected_language || 'English',
+      transcription: record.transcript || '',
+      modelUsed: record.model_name || 'voiceshield-hindi-english-deepfake-v3-hardened',
+      disputeFlagged: Boolean(record.is_flagged),
+      investigator: record.username || record.user_email || 'Authenticated User'
+    };
+    const blob = new Blob([JSON.stringify(reportContent, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `VoiceShield_${record.event_id}_AuditReport.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const flaggedCount = logs.filter((item) => Boolean(item.is_flagged)).length;
@@ -267,6 +300,7 @@ export default function History({ user, username }) {
                   <th className="py-4 px-5">Audio File</th>
                   <th className="py-4 px-5">User Email</th>
                   <th className="py-4 px-5">Type</th>
+                  <th className="py-4 px-5">Language</th>
                   <th className="py-4 px-5">Duration</th>
                   <th className="py-4 px-5">Classification</th>
                   <th className="py-4 px-5">Spoof Score</th>
@@ -364,6 +398,12 @@ export default function History({ user, username }) {
                         {item.mode || 'Upload'}
                       </td>
 
+                      <td className="py-4 px-5 text-slate-300 text-xs font-mono whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[11px] text-[#00d4ff]">
+                          {item.detected_language || 'English'}
+                        </span>
+                      </td>
+
                       <td className="py-4 px-5 text-slate-400 text-xs font-mono whitespace-nowrap">
                         {item.duration ? `${item.duration}s` : 'N/A'}
                       </td>
@@ -429,14 +469,23 @@ export default function History({ user, username }) {
                       </td>
 
                       <td className="py-4 px-5 text-right whitespace-nowrap">
-                        <button
-                          onClick={(e) => handleDelete(item.event_id, e)}
-                          disabled={deletingId === item.event_id}
-                          className="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors opacity-80 group-hover:opacity-100"
-                          title="Delete audit record"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={(e) => handleDownloadReport(item, e)}
+                            className="p-2 rounded-lg text-slate-400 hover:text-[#00d4ff] hover:bg-white/5 transition-colors"
+                            title="Download forensic JSON audit report"
+                          >
+                            <Download size={15} />
+                          </button>
+                          <button
+                            onClick={(e) => handleDelete(item.event_id, e)}
+                            disabled={deletingId === item.event_id}
+                            className="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors opacity-80 group-hover:opacity-100"
+                            title="Delete audit record"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -613,6 +662,10 @@ export default function History({ user, username }) {
                     <span className="text-slate-200">{selectedRecord.duration ? `${selectedRecord.duration}s` : 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
+                    <span>Detected Language:</span>
+                    <span className="text-[#00d4ff] font-semibold">{selectedRecord.detected_language || 'English'}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span>Recorded Timestamp:</span>
                     <span className="text-slate-200">
                       {new Date(selectedRecord.created_at).toLocaleString()}
@@ -621,8 +674,16 @@ export default function History({ user, username }) {
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-end">
-                <Button variant="secondary" size="sm" onClick={() => setSelectedRecord(null)}>
+              <div className="mt-8 flex items-center justify-between gap-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={Download}
+                  onClick={(e) => handleDownloadReport(selectedRecord, e)}
+                >
+                  Download Report (.json)
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedRecord(null)}>
                   Close
                 </Button>
               </div>

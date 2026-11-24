@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.services.model_service import model_service
-from app.api.routes import health, analysis, history
+from app.api.routes import health, analysis, history, tts
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,7 +15,6 @@ logger = logging.getLogger("voiceshield.main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: preload ML model
     logger.info("Initializing VoiceShield ML engine and services...")
     status = model_service.get_status()
     if status["is_loaded"]:
@@ -23,7 +22,6 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning(f"Model loading alert: {status['error']}")
 
-    # Non-blocking sync of registered Firebase users into Supabase user subspace
     try:
         import asyncio
         from sync_firebase_users import sync_firebase_users
@@ -32,7 +30,6 @@ async def lifespan(app: FastAPI):
         logger.debug(f"Firebase sync background task startup notice: {sync_init_err}")
 
     yield
-    # Shutdown
     logger.info("VoiceShield API shutting down.")
 
 app = FastAPI(
@@ -42,7 +39,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -51,10 +47,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Routers
 app.include_router(health.router)
 app.include_router(analysis.router)
 app.include_router(history.router)
+app.include_router(tts.router)
+app.include_router(tts.router, prefix=settings.API_V1_PREFIX)
 
 @app.get("/")
 def root():
