@@ -262,21 +262,43 @@ export default function VoiceAnalysis({ user, username }) {
 
               <div className="mt-6 pt-6 border-t border-white/[0.08]">
                 {analyzing ? (
-                  <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-[#0f1117]/95 border border-[#00f5d4]/30 text-center relative overflow-hidden shadow-[0_0_20px_rgba(0,245,212,0.08)]">
-                    <div className="relative mb-4 flex items-center justify-center">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#00f5d4]/20 to-[#00d4ff]/20 border border-[#00f5d4]/40 flex items-center justify-center text-[#00f5d4] shadow-[0_0_25px_rgba(0,245,212,0.25)]">
-                        <ShieldMicLogo size={28} className="animate-bounce" />
+                  <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-[#0f1117]/95 border border-[#00f5d4]/30 text-center relative overflow-hidden shadow-[0_0_25px_rgba(0,245,212,0.12)]">
+                    <div className="relative flex items-center justify-center w-36 h-36 my-2">
+                      <div className="absolute inset-0 rounded-full border border-[#00f5d4]/50 animate-tech-ripple pointer-events-none" />
+                      <div
+                        className="absolute inset-0 rounded-full border border-[#00d4ff]/40 animate-tech-ripple pointer-events-none"
+                        style={{ animationDelay: '0.8s' }}
+                      />
+                      <div
+                        className="absolute inset-0 rounded-full border border-[#10b981]/30 animate-tech-ripple pointer-events-none"
+                        style={{ animationDelay: '1.6s' }}
+                      />
+
+                      <div className="absolute w-24 h-24 rounded-full border border-dashed border-[#00f5d4]/40 animate-[spin_10s_linear_infinite] pointer-events-none" />
+                      <div className="absolute w-32 h-32 rounded-full border border-dotted border-[#00d4ff]/25 animate-[spin_16s_linear_infinite_reverse] pointer-events-none" />
+
+                      <div className="relative z-10 flex items-center justify-center">
+                        <ShieldMicLogo
+                          size={46}
+                          className="text-[#00f5d4] drop-shadow-[0_0_20px_rgba(0,245,212,0.9)]"
+                          micClassName="animate-pulse drop-shadow-[0_0_12px_rgba(0,245,212,0.95)]"
+                          strokeWidth={1.8}
+                        />
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mb-1.5">
+                    <div className="w-48 h-1 bg-slate-800/80 rounded-full relative overflow-hidden border border-white/5 my-2.5 shadow-inner">
+                      <div className="h-full w-24 bg-gradient-to-r from-transparent via-[#00f5d4] to-transparent animate-cyber-scan" />
+                    </div>
+
+                    <div className="flex items-center gap-2 mb-1">
                       <div className="w-2 h-2 rounded-full bg-[#00f5d4] animate-ping" />
                       <span className="text-xs font-mono uppercase tracking-wider text-[#00f5d4] font-semibold">
                         Acoustic & Semantic Telemetry Active
                       </span>
                     </div>
 
-                    <p className="text-sm font-display font-medium text-white mb-2">
+                    <p className="text-sm font-display font-medium text-white mb-1">
                       {analysisPhase}...
                     </p>
                     <p className="text-[11px] font-mono text-slate-400 max-w-xs">

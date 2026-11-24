@@ -92,7 +92,19 @@ export default function TTSVoiceSandbox({ onAudioReady, onReset, onAutoAnalyze }
         onAudioReady(file, blob);
       }
     } catch (err) {
-      const msg = err.response?.data?.detail || err.message || 'Failed to synthesize speech audio.';
+      let msg = err.message || 'Failed to synthesize speech audio.';
+      if (err.response?.data instanceof Blob) {
+        try {
+          const raw = await err.response.data.text();
+          const parsed = JSON.parse(raw);
+          if (parsed.detail) msg = parsed.detail;
+        } catch (_) {}
+      } else if (err.response?.data?.detail) {
+        msg = err.response.data.detail;
+      }
+      if (err.response?.status === 404) {
+        msg = 'Cloud TTS service is booting up. Please retry in 10-15 seconds.';
+      }
       setErrorMessage(msg);
     } finally {
       setGenerating(false);

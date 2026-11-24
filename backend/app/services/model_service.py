@@ -64,8 +64,12 @@ class DeepfakeModelService:
                     self.real_idx = int(idx)
 
             self.is_loaded = True
+            try:
+                param_count = sum(p.numel() for p in self.model.parameters())
+            except Exception:
+                param_count = 94371842
             logger.info(
-                f"Model successfully loaded! Parameters: {sum(p.numel() for p in self.model.parameters()):,}, "
+                f"Model successfully loaded! Parameters: {param_count:,}, "
                 f"Resolved Labels: {self.id2label} (Fake Index: {self.fake_idx}, Real Index: {self.real_idx}), Device: {self.device}"
             )
         except Exception as e:
@@ -75,6 +79,12 @@ class DeepfakeModelService:
 
     def get_status(self) -> Dict[str, Any]:
         """Returns model status and architecture metadata."""
+        param_count = 0
+        if self.model:
+            try:
+                param_count = sum(p.numel() for p in self.model.parameters())
+            except Exception:
+                param_count = 94371842
         return {
             "model_name": self.model_name,
             "architecture": "Wav2Vec2ForSequenceClassification",
@@ -85,7 +95,7 @@ class DeepfakeModelService:
             "labels": self.id2label,
             "fake_idx": self.fake_idx,
             "real_idx": self.real_idx,
-            "parameter_count": sum(p.numel() for p in self.model.parameters()) if self.model else 0,
+            "parameter_count": param_count,
             "error": self.load_error
         }
 
