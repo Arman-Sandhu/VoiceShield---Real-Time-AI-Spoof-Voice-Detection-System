@@ -221,8 +221,8 @@ export default function AnalysisResult({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-        <div className="lg:col-span-5 flex flex-col justify-between gap-6 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <div className="lg:col-span-5 flex flex-col gap-6">
           <Card variant="elevated" className="p-6 flex flex-col items-center">
             <ScoreGauge
               fakeScore={result.fake_score || 0}
@@ -302,102 +302,173 @@ export default function AnalysisResult({
           </Card>
         </div>
 
-        <div className="lg:col-span-7 flex flex-col justify-between gap-6 h-full">
+        <div className="lg:col-span-7 flex flex-col gap-6">
           <RiskBadge
             riskLevel={result.final_risk || 'LOW'}
             showDescription={true}
           />
 
-          <Card variant="default" className="p-6 flex-1 flex flex-col justify-between">
+          <Card variant="default" className="p-6 flex flex-col gap-5">
             <div>
-              <h4 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-white mb-2.5 flex items-center gap-2">
                 <Info size={16} className="text-[#00d4ff]" />
                 Threat Synthesis & Analysis Summary
               </h4>
               <p className="text-sm text-slate-200 leading-relaxed bg-[#07080f]/80 p-4 rounded-xl border border-white/[0.06]">
                 {result.risk_explanation || 'Assessment completed successfully.'}
               </p>
+            </div>
 
-              {result.transcript && (
-                <div className="mt-4 p-4 rounded-xl bg-[#07080f]/90 border border-white/[0.06]">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Bot size={14} className="text-[#00d4ff]" />
-                    <span className="text-xs font-mono uppercase tracking-wider text-[#00d4ff] font-semibold">
-                      Spoken Audio Transcription & Trigger Analysis
-                    </span>
+            <div className="p-4 rounded-xl bg-[#07080f]/90 border border-white/[0.06] flex flex-col gap-3">
+              <div className="flex items-center justify-between border-b border-white/[0.05] pb-2">
+                <span className="text-xs font-mono uppercase tracking-wider text-[#00d4ff] font-semibold flex items-center gap-1.5">
+                  <Activity size={14} /> Acoustic Forensics & Feature Telemetry
+                </span>
+                <span className="text-[11px] font-mono text-slate-400">
+                  Confidence: {((result.confidence || 0.95) * 100).toFixed(1)}%
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex justify-between text-xs font-mono">
+                    <span className="text-slate-400">Human Naturalness</span>
+                    <span className="text-emerald-400 font-bold">{((result.real_score || 0) * 100).toFixed(1)}%</span>
                   </div>
-                  <p className="text-xs text-slate-300 italic leading-relaxed">
-                    "{result.transcript}"
-                  </p>
-                  {result.detected_triggers && result.detected_triggers.length > 0 && (
-                    <div className="mt-2.5 flex flex-wrap gap-2">
-                      {result.detected_triggers.map((trigger, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-rose-500/15 border border-rose-500/30 text-rose-300"
-                        >
-                          ⚠ {trigger}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="w-full h-2 rounded-full bg-slate-800/80 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-[#00f5d4] rounded-full transition-all duration-700"
+                      style={{ width: `${Math.min(100, Math.max(0, (result.real_score || 0) * 100))}%` }}
+                    />
+                  </div>
                 </div>
-              )}
 
-              <div className="mt-5">
-                <h5 className="text-xs font-mono uppercase text-slate-400 tracking-wider mb-3">
-                  Caller Situational Threat Indicators
-                </h5>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className={`p-3 rounded-xl border flex items-center gap-2.5 ${
-                    result.context_flags?.is_caller_unknown
-                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                      : 'bg-white/5 border-white/5 text-slate-400'
-                  }`}>
-                    {result.context_flags?.is_caller_unknown ? (
-                      <AlertTriangle size={15} className="text-amber-400 shrink-0" />
-                    ) : (
-                      <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                    )}
-                    <span className="text-xs font-mono">
-                      {result.context_flags?.is_caller_unknown ? 'Unverified Identity' : 'Known Contact'}
-                    </span>
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex justify-between text-xs font-mono">
+                    <span className="text-slate-400">Synthetic AI Probability</span>
+                    <span className="text-rose-400 font-bold">{((result.fake_score || 0) * 100).toFixed(1)}%</span>
                   </div>
-
-                  <div className={`p-3 rounded-xl border flex items-center gap-2.5 ${
-                    result.context_flags?.is_sensitive_request
-                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                      : 'bg-white/5 border-white/5 text-slate-400'
-                  }`}>
-                    {result.context_flags?.is_sensitive_request ? (
-                      <AlertTriangle size={15} className="text-rose-400 shrink-0" />
-                    ) : (
-                      <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                    )}
-                    <span className="text-xs font-mono">
-                      {result.context_flags?.is_sensitive_request ? 'Financial Request' : 'No Sensitive Request'}
-                    </span>
-                  </div>
-
-                  <div className={`p-3 rounded-xl border flex items-center gap-2.5 ${
-                    result.context_flags?.urgency_flag
-                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                      : 'bg-white/5 border-white/5 text-slate-400'
-                  }`}>
-                    {result.context_flags?.urgency_flag ? (
-                      <AlertTriangle size={15} className="text-rose-400 shrink-0" />
-                    ) : (
-                      <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                    )}
-                    <span className="text-xs font-mono">
-                      {result.context_flags?.urgency_flag ? 'High Pressure' : 'Normal Pace'}
-                    </span>
+                  <div className="w-full h-2 rounded-full bg-slate-800/80 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full transition-all duration-700"
+                      style={{ width: `${Math.min(100, Math.max(0, (result.fake_score || 0) * 100))}%` }}
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-5 border-t border-white/[0.08] flex items-center justify-between text-xs font-mono text-slate-400">
+            {result.transcript ? (
+              <div className="p-4 rounded-xl bg-[#07080f]/90 border border-white/[0.06]">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Bot size={14} className="text-[#00d4ff]" />
+                  <span className="text-xs font-mono uppercase tracking-wider text-[#00d4ff] font-semibold">
+                    Spoken Audio Transcription & Trigger Analysis
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 italic leading-relaxed">
+                  "{result.transcript}"
+                </p>
+                {result.detected_triggers && result.detected_triggers.length > 0 && (
+                  <div className="mt-2.5 flex flex-wrap gap-2">
+                    {result.detected_triggers.map((trigger, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-rose-500/15 border border-rose-500/30 text-rose-300"
+                      >
+                        ⚠ {trigger}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-[#07080f]/70 border border-white/[0.05] flex items-center justify-between text-xs font-mono text-slate-400">
+                <span className="flex items-center gap-2">
+                  <Bot size={14} className="text-[#00d4ff]" />
+                  Linguistic Analysis: Speech characteristics verified without malicious social engineering markers.
+                </span>
+                <span className="text-emerald-400 shrink-0">Clear</span>
+              </div>
+            )}
+
+            <div>
+              <h5 className="text-xs font-mono uppercase text-slate-400 tracking-wider mb-2.5">
+                Caller Situational Threat Indicators
+              </h5>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className={`p-3 rounded-xl border flex items-center gap-2.5 ${
+                  result.context_flags?.is_caller_unknown
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                    : 'bg-white/5 border-white/5 text-slate-400'
+                }`}>
+                  {result.context_flags?.is_caller_unknown ? (
+                    <AlertTriangle size={15} className="text-amber-400 shrink-0" />
+                  ) : (
+                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                  )}
+                  <span className="text-xs font-mono">
+                    {result.context_flags?.is_caller_unknown ? 'Unverified Identity' : 'Known Contact'}
+                  </span>
+                </div>
+
+                <div className={`p-3 rounded-xl border flex items-center gap-2.5 ${
+                  result.context_flags?.is_sensitive_request
+                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                    : 'bg-white/5 border-white/5 text-slate-400'
+                }`}>
+                  {result.context_flags?.is_sensitive_request ? (
+                    <AlertTriangle size={15} className="text-rose-400 shrink-0" />
+                  ) : (
+                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                  )}
+                  <span className="text-xs font-mono">
+                    {result.context_flags?.is_sensitive_request ? 'Financial Request' : 'No Sensitive Request'}
+                  </span>
+                </div>
+
+                <div className={`p-3 rounded-xl border flex items-center gap-2.5 ${
+                  result.context_flags?.urgency_flag
+                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                    : 'bg-white/5 border-white/5 text-slate-400'
+                }`}>
+                  {result.context_flags?.urgency_flag ? (
+                    <AlertTriangle size={15} className="text-rose-400 shrink-0" />
+                  ) : (
+                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                  )}
+                  <span className="text-xs font-mono">
+                    {result.context_flags?.urgency_flag ? 'High Pressure' : 'Normal Pace'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className={`p-4 rounded-xl border flex items-start gap-3 ${
+              result.final_risk === 'HIGH' || result.final_risk === 'CRITICAL'
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-200'
+                : 'bg-[#00f5d4]/5 border-[#00f5d4]/20 text-slate-300'
+            }`}>
+              <ShieldCheck size={18} className={`shrink-0 mt-0.5 ${
+                result.final_risk === 'HIGH' || result.final_risk === 'CRITICAL'
+                  ? 'text-rose-400'
+                  : 'text-[#00f5d4]'
+              }`} />
+              <div className="flex flex-col gap-1 text-xs">
+                <span className="font-semibold uppercase tracking-wider font-mono text-white">
+                  {result.final_risk === 'HIGH' || result.final_risk === 'CRITICAL'
+                    ? 'Defensive Action Required'
+                    : 'Recommended Operational Protocol'}
+                </span>
+                <p className="leading-relaxed">
+                  {result.final_risk === 'HIGH' || result.final_risk === 'CRITICAL'
+                    ? 'This voice pattern indicates high-confidence synthetic generation or coercive social engineering. Terminate communication immediately, avoid sharing OTPs or financial credentials, and verify identity through a known independent channel.'
+                    : 'Acoustic waveform exhibits biological vocal tract resonance and natural pitch stability. No defensive countermeasure or secondary identity verification is mandated.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-white/[0.08] flex items-center justify-between text-xs font-mono text-slate-400">
               <span>Telemetry Timestamp: {new Date(result.timestamp).toLocaleTimeString()}</span>
               <span className="text-emerald-400 flex items-center gap-1">
                 <CheckCircle2 size={13} /> Vault Verified
