@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Play, Pause, RefreshCw, Volume2, ShieldCheck, ArrowRight, AlertCircle, Bot, User, Check, Download } from 'lucide-react';
 import Button from '../ui/Button';
 import api from '../../services/api';
+import { downloadFileToDevice } from '../../utils/fileDownloader';
 
 const SCAM_PRESETS = [
   {
@@ -127,14 +128,10 @@ export default function TTSVoiceSandbox({ onAudioReady, onReset, onAutoAnalyze }
     }
   };
 
-  const handleDownloadAudio = () => {
-    if (!audioUrl) return;
-    const a = document.createElement('a');
-    a.href = audioUrl;
-    a.download = generatedFile?.name || `VoiceShield_Synthetic_${Date.now()}.mp3`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const handleDownloadAudio = async () => {
+    if (!generatedBlob && !audioUrl) return;
+    const fileName = generatedFile?.name || `VoiceShield_Synthetic_${Date.now()}.mp3`;
+    await downloadFileToDevice(generatedBlob, fileName, 'audio/mpeg');
   };
 
   return (

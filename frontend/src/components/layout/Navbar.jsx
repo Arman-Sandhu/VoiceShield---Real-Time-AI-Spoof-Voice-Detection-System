@@ -136,92 +136,6 @@ export default function Navbar({ user, username, onUpdateUsername }) {
                 )}
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-[#07080f] rounded-full" />
               </button>
-
-              <AnimatePresence>
-                {isProfileMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2.5 w-72 sm:w-80 rounded-2xl bg-[#0f1117] border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.7)] p-4 z-50 overflow-hidden"
-                  >
-                    <div className="flex items-start gap-3 pb-3.5 border-b border-white/[0.08]">
-                      {user.photoURL ? (
-                        <img
-                          src={user.photoURL}
-                          alt={displayName}
-                          className="w-12 h-12 rounded-full object-cover border border-[#00d4ff]/40 shrink-0"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#00d4ff]/30 to-[#a855f7]/40 flex items-center justify-center text-white font-display font-bold text-lg border border-[#00d4ff]/40 shrink-0">
-                          {initial}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1">
-                          <h4 className="text-sm font-display font-bold text-white truncate" title={displayName}>
-                            {displayName}
-                          </h4>
-                          <button
-                            type="button"
-                            onClick={handleOpenEditModal}
-                            className="p-1 rounded text-slate-400 hover:text-[#00d4ff] hover:bg-white/5 transition-colors cursor-pointer shrink-0"
-                            title="Edit Display Name"
-                          >
-                            <Pencil size={13} />
-                          </button>
-                        </div>
-                        <p className="text-xs font-mono text-slate-400 truncate mt-0.5" title={user.email}>
-                          {user.email || 'No email attached'}
-                        </p>
-                        <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                          <Shield size={10} /> Verified User
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="py-2 space-y-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsProfileMenuOpen(false);
-                          setIsAccountModalOpen(true);
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-mono text-slate-300 hover:text-white hover:bg-white/5 transition-all text-left cursor-pointer group"
-                      >
-                        <Key size={14} className="text-[#00d4ff] group-hover:scale-110 transition-transform" />
-                        <span>Account Settings & Change Email</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleOpenEditModal}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-mono text-slate-300 hover:text-white hover:bg-white/5 transition-all text-left cursor-pointer group"
-                      >
-                        <User size={14} className="text-[#a855f7] group-hover:scale-110 transition-transform" />
-                        <span>Edit Display Name</span>
-                      </button>
-                    </div>
-
-                    <div className="pt-2 border-t border-white/[0.08]">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsProfileMenuOpen(false);
-                          localStorage.removeItem('voiceshield_guest_auth');
-                          auth.signOut();
-                          window.location.reload();
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-mono text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
-                      >
-                        <LogOut size={14} />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -245,6 +159,117 @@ export default function Navbar({ user, username, onUpdateUsername }) {
           }
         }}
       />
+
+      {typeof document !== 'undefined' &&
+        user &&
+        createPortal(
+          <AnimatePresence>
+            {isProfileMenuOpen && (
+              <div
+                className="fixed inset-0 z-[9990] flex items-start justify-end p-4 sm:p-6 bg-black/60 backdrop-blur-sm"
+                onClick={() => setIsProfileMenuOpen(false)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="mt-14 sm:mt-16 w-full max-w-sm rounded-2xl bg-[#0f1117] border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] p-5 overflow-hidden"
+                >
+                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.08]">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#00d4ff] flex items-center gap-1.5">
+                      <Shield size={12} /> Account Profile
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                      aria-label="Close Profile Menu"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-start gap-3.5 pb-4 border-b border-white/[0.08]">
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt={displayName}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-[#00d4ff]/50 shrink-0 shadow-[0_0_15px_rgba(0,212,255,0.3)]"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#00d4ff]/40 to-[#a855f7]/50 flex items-center justify-center text-white font-display font-bold text-xl border-2 border-[#00d4ff]/50 shrink-0 shadow-[0_0_15px_rgba(0,212,255,0.3)]">
+                        {initial}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <h4 className="text-base font-display font-bold text-white truncate" title={displayName}>
+                          {displayName}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={handleOpenEditModal}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#00d4ff] hover:bg-white/5 transition-colors cursor-pointer shrink-0"
+                          title="Edit Display Name"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                      </div>
+                      <p className="text-xs font-mono text-slate-300 truncate mt-0.5" title={user.email}>
+                        {user.email || 'No email attached'}
+                      </p>
+                      <span className="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        <Shield size={11} /> Verified Account
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="py-3 space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        setIsAccountModalOpen(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-mono text-slate-200 hover:text-white hover:bg-white/5 transition-all text-left cursor-pointer group border border-transparent hover:border-white/10"
+                    >
+                      <Key size={15} className="text-[#00d4ff] group-hover:scale-110 transition-transform" />
+                      <span>Account Settings & Change Email</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleOpenEditModal}
+                      className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-mono text-slate-200 hover:text-white hover:bg-white/5 transition-all text-left cursor-pointer group border border-transparent hover:border-white/10"
+                    >
+                      <User size={15} className="text-[#a855f7] group-hover:scale-110 transition-transform" />
+                      <span>Edit Display Name</span>
+                    </button>
+                  </div>
+
+                  <div className="pt-3 border-t border-white/[0.08]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        localStorage.removeItem('voiceshield_guest_auth');
+                        auth.signOut();
+                        window.location.reload();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-mono text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer border border-rose-500/20"
+                    >
+                      <LogOut size={15} />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
 
       {typeof document !== 'undefined' &&
         createPortal(
@@ -367,6 +392,40 @@ export default function Navbar({ user, username, onUpdateUsername }) {
               </Link>
             );
           })}
+
+          <button
+            type="button"
+            onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+              isProfileMenuOpen ? 'text-[#00d4ff] scale-105' : 'text-slate-400 hover:text-white'
+            }`}
+            title={`Account: ${displayName}`}
+            aria-label="User Profile and Account Menu"
+          >
+            <div
+              className={`relative p-0.5 rounded-full border-2 transition-all ${
+                isProfileMenuOpen
+                  ? 'border-[#00d4ff] shadow-[0_0_15px_rgba(0,212,255,0.5)]'
+                  : 'border-[#00d4ff]/50 bg-white/5'
+              }`}
+            >
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={displayName}
+                  className="w-5 h-5 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#00d4ff]/40 to-[#a855f7]/40 flex items-center justify-center text-white font-display font-bold text-[10px]">
+                  {initial}
+                </div>
+              )}
+              <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border border-[#07080f] rounded-full" />
+            </div>
+            <span className="text-[10px] font-mono tracking-wider truncate max-w-[64px]">
+              Account
+            </span>
+          </button>
         </nav>
       )}
     </header>

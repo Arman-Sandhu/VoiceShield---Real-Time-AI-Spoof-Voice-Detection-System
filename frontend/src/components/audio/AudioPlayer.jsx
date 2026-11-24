@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, Volume2, Volume1, VolumeX, Download, CheckCircle2 } from 'lucide-react';
 import Button from '../ui/Button';
 import AudioWaveformVisualizer from './AudioWaveformVisualizer';
+import { downloadFileToDevice } from '../../utils/fileDownloader';
 
 export default function AudioPlayer({
   audioBlob = null,
@@ -140,22 +141,27 @@ export default function AudioPlayer({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!sourceUrl && !audioBlob && !audioFile) return;
     const downloadName = fileName || (audioFile ? audioFile.name : `VoiceShield_${Date.now()}.wav`);
     
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = sourceUrl;
-    a.download = downloadName;
-    document.body.appendChild(a);
-    a.click();
-    
-    setDownloadSuccess(true);
-    setTimeout(() => {
-      document.body.removeChild(a);
-      setDownloadSuccess(false);
-    }, 2000);
+    let target = audioBlob || audioFile;
+    if (!target && sourceUrl) {
+      try {
+        const res = await fetch(sourceUrl);
+        target = await res.blob();
+      } catch (err) {
+        console.warn('Could not fetch sourceUrl as blob:', err);
+      }
+    }
+
+    const success = await downloadFileToDevice(target || sourceUrl, downloadName, 'audio/wav');
+    if (success) {
+      setDownloadSuccess(true);
+      setTimeout(() => {
+        setDownloadSuccess(false);
+      }, 2000);
+    }
   };
 
   if (!sourceUrl) return null;

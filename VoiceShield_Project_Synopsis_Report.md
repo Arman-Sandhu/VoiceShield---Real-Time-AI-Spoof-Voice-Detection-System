@@ -331,7 +331,7 @@ VoiceShield delivers a cohesive, fully functioning deep learning solution to voi
 
 ---
 
-## 13. Production Cloud Deployment & Native Mobile Architecture (v5.2.0)
+## 13. Production Cloud Deployment & Native Mobile Architecture (v5.3.0)
 
 ### 13.1 Hugging Face Spaces Backend Architecture & In-Memory Stability
 - **Endpoint**: `https://armansandhu1729-voiceshield-backend.hf.space`
@@ -343,12 +343,14 @@ VoiceShield delivers a cohesive, fully functioning deep learning solution to voi
 - **Live Web App**: `https://voiceshield-aispoof-detection.vercel.app/`
 - **Hosting**: Vercel automated continuous integration and continuous deployment (CI/CD).
 - **LAN Mobile Testing & Guest Bypass**: Added auto-detection and graceful bypass for Firebase `auth/unauthorized-domain` errors when testing over local Wi-Fi (`http://10.11.6.100:5173`), providing an instant "Continue as Local Guest Tester" mode with mock verified authorization.
-- **Forensic UI Ergonomics**: Zero-vacant-space layout with dual acoustic confidence gauges, bounded concentric radar ripples scanning visualizer, and customizable profile avatars.
+- **Forensic UI Ergonomics & Avatar Navigation**: Zero-vacant-space layout with dual acoustic confidence gauges, bounded concentric radar ripples scanning visualizer, customizable profile avatars, and a mobile top navigation avatar button directly alongside the History icon opening the portal profile menu.
 
-### 13.3 Native Android Mobile Application
-- **Distribution Package**: `VoiceShield.apk` (21.85 MB), built via Capacitor 8 and Gradle 8.14.3 targeting Android 15 (API 35).
-- **Mobile Hardware Integration**: Hardware back button management via `@capacitor/app`, repeating continuous vibration via `VibratorManager` (`VibrationEffect.createWaveform`), 2-window alert hysteresis, and zero-drift responsive viewport containment.
-- **DSP Sample-Rate Harmonization**: In-stream linear audio downsampling (48kHz/44.1kHz -> 16kHz) preventing pitch stretching and ensuring 100% live call detection accuracy.
+### 13.3 Native Android Mobile Application (v5.3.0)
+- **Distribution Package**: `VoiceShield.apk` (26.42 MB), built via Capacitor 8 and Gradle 8.14.3 targeting Android 15 (API 35).
+- **Mobile Hardware Integration & Haptics**: Hardware back button management via `@capacitor/app`, repeating continuous vibration via `VibratorManager` (`VibrationEffect.createWaveform`), 2-window alert hysteresis, and zero-drift responsive viewport containment.
+- **Lifecycle & LMK State Preservation**: Configured `android:largeHeap="true"` and `android:alwaysRetainTaskState="true"` in `AndroidManifest.xml`, hooked `onSaveInstanceState`/`onRestoreInstanceState` WebView state serialization in `MainActivity.java`, and built React route persistence in `App.jsx` (`RoutePersistence` / `LandingOrRedirect`), preventing app restarts after 15+ seconds backgrounding.
+- **Native MediaStore Android Downloader**: Implemented native `AndroidDownloaderPlugin` with `MediaStore.Downloads` (API 29+) and `Environment.DIRECTORY_DOWNLOADS` public directory storage, paired with `fileDownloader.js` Base64 stream decoding and Toast alerts, enabling seamless 1-click downloads for Neural TTS audio, microphone recordings, and audit forensic reports on Android.
+- **Live Call Audio Replay & DSP Downsampling**: Added in-session and post-call audio playback controls (`Play Audio` / `Pause Audio`) in `LiveCallShield.jsx` alongside audio and telemetry JSON export buttons, with in-stream linear audio downsampling (48kHz/44.1kHz -> 16kHz) preventing pitch stretching and ensuring 100% live call detection accuracy.
 - **Synchronized APK Artifacts**: Maintained synchronized binaries at project root (`VoiceShield.apk`, `VoiceShield-v2.0.1-Final.apk`), `frontend/public/`, and `frontend/dist/`.
 
 ### 13.4 Automated CI/CD Release Pipeline & Frictionless CDN Distribution

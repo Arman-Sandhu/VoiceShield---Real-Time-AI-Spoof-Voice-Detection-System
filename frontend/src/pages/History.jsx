@@ -17,6 +17,7 @@ import api from '../services/api';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import RiskBadge from '../components/analysis/RiskBadge';
+import { downloadFileToDevice } from '../utils/fileDownloader';
 
 export default function History({ user, username }) {
   const [logs, setLogs] = useState([]);
@@ -140,7 +141,7 @@ export default function History({ user, username }) {
     }
   };
 
-  const handleDownloadReport = (record, e) => {
+  const handleDownloadReport = async (record, e) => {
     if (e) e.stopPropagation();
     const reportContent = {
       reportType: 'VoiceShield Forensic Verification Audit Record',
@@ -160,15 +161,8 @@ export default function History({ user, username }) {
       disputeFlagged: Boolean(record.is_flagged),
       investigator: record.username || record.user_email || 'Authenticated User'
     };
-    const blob = new Blob([JSON.stringify(reportContent, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `VoiceShield_${record.event_id}_AuditReport.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const fileName = `VoiceShield_${record.event_id}_AuditReport.json`;
+    await downloadFileToDevice(JSON.stringify(reportContent, null, 2), fileName, 'application/json');
   };
 
   const flaggedCount = logs.filter((item) => Boolean(item.is_flagged)).length;

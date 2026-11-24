@@ -5,6 +5,7 @@ import AudioWaveformVisualizer from './AudioWaveformVisualizer';
 import AudioPlayer from './AudioPlayer';
 import AudioCropper from './AudioCropper';
 import { encodeWAV } from '../../utils/wavEncoder';
+import { downloadFileToDevice } from '../../utils/fileDownloader';
 
 export default function AudioRecorder({ onAudioReady, onReset }) {
   const [isRecording, setIsRecording] = useState(false);
@@ -174,19 +175,10 @@ export default function AudioRecorder({ onAudioReady, onReset }) {
     }
   };
 
-  const downloadRecording = () => {
+  const downloadRecording = async () => {
     if (!recordedBlob) return;
-    const url = URL.createObjectURL(recordedBlob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = recordedFileName || `VoiceShield_REC_${Date.now()}.wav`;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 150);
+    const fileName = recordedFileName || `VoiceShield_REC_${Date.now()}.wav`;
+    await downloadFileToDevice(recordedBlob, fileName, 'audio/wav');
   };
 
   const handleStartRename = () => {

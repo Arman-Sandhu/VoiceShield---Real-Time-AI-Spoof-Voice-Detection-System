@@ -10,7 +10,8 @@
   "android": {
     "allowMixedContent": true,
     "captureInput": true,
-    "webContentsDebuggingEnabled": true
+    "webContentsDebuggingEnabled": true,
+    "adjustMarginsForEdgeToEdge": "auto"
   },
   "plugins": {
     "Haptics": {},

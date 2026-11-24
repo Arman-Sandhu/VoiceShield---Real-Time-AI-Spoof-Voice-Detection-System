@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -14,6 +14,29 @@ import Dashboard from './pages/Dashboard';
 import VoiceAnalysis from './pages/VoiceAnalysis';
 import History from './pages/History';
 import TechLoader from './components/ui/TechLoader';
+
+function RoutePersistence() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname && location.pathname !== '/login' && location.pathname !== '/') {
+      localStorage.setItem('voiceshield_last_route', location.pathname);
+    }
+  }, [location.pathname]);
+
+  return null;
+}
+
+function LandingOrRedirect({ user }) {
+  if (user) {
+    const savedRoute = localStorage.getItem('voiceshield_last_route');
+    const targetRoute = savedRoute && ['/analyze', '/dashboard', '/history'].includes(savedRoute)
+      ? savedRoute
+      : '/dashboard';
+    return <Navigate to={targetRoute} replace />;
+  }
+  return <Landing user={user} />;
+}
 
 function App() {
   const [user, setUser] = useState(null);
@@ -52,14 +75,24 @@ function App() {
       fetchUserProfile(currentUser);
     });
 
-    // Native Android Back Button navigation handler
     let backListener = null;
+    let stateListener = null;
+
     if (Capacitor.isNativePlatform()) {
       backListener = CapApp.addListener('backButton', ({ canGoBack }) => {
-        if (window.location.pathname === '/' || !canGoBack) {
+        if (window.location.pathname === '/' || window.location.pathname === '/dashboard' || !canGoBack) {
           CapApp.exitApp();
         } else {
           window.history.back();
+        }
+      });
+
+      stateListener = CapApp.addListener('appStateChange', ({ isActive }) => {
+        if (!isActive) {
+          const currentPath = window.location.pathname;
+          if (currentPath && currentPath !== '/login') {
+            localStorage.setItem('voiceshield_last_route', currentPath);
+          }
         }
       });
     }
@@ -68,6 +101,9 @@ function App() {
       unsubscribe();
       if (backListener) {
         backListener.then((h) => h.remove()).catch(() => {});
+      }
+      if (stateListener) {
+        stateListener.then((h) => h.remove()).catch(() => {});
       }
     };
   }, []);
@@ -94,23 +130,19 @@ function App() {
 
   return (
     <Router>
+      <RoutePersistence />
       <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#07080f] text-slate-100 flex flex-col relative selection:bg-[#00d4ff]/30 selection:text-white ambient-gradient">
-        {/* Navigation */}
         <Navbar user={user} username={username} onUpdateUsername={handleUpdateUsername} />
 
-        {/* Main Content Area (With responsive bottom spacing for mobile bottom bar) */}
         <main className="flex-1 w-full flex flex-col pb-16 md:pb-0">
           <Routes>
-            {/* Public Landing Page */}
-            <Route path="/" element={<Landing user={user} />} />
+            <Route path="/" element={<LandingOrRedirect user={user} />} />
 
-            {/* Authentication */}
             <Route
               path="/login"
               element={!user ? <Login onLoginSuccess={(name, guestUser) => { if (guestUser) setUser(guestUser); if (name) setUsername(name); }} /> : <Navigate to="/dashboard" replace />}
             />
 
-            {/* Protected Workspace Pages */}
             <Route
               path="/dashboard"
               element={user ? <Dashboard user={user} username={username} /> : <Navigate to="/login" replace />}
@@ -126,7 +158,6 @@ function App() {
               element={user ? <History user={user} username={username} /> : <Navigate to="/login" replace />}
             />
 
-            {/* Fallback */}
             <Route
               path="*"
               element={<Navigate to={user ? "/dashboard" : "/"} replace />}
@@ -134,7 +165,6 @@ function App() {
           </Routes>
         </main>
 
-        {/* Global Footer */}
         <Footer />
       </div>
     </Router>

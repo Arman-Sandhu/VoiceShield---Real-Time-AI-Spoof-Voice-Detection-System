@@ -28,6 +28,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ScoreGauge from '../components/analysis/ScoreGauge';
 import RiskBadge from '../components/analysis/RiskBadge';
+import { downloadFileToDevice } from '../utils/fileDownloader';
 import AudioPlayer from '../components/audio/AudioPlayer';
 
 export default function AnalysisResult({
@@ -88,7 +89,7 @@ export default function AnalysisResult({
     }
   };
 
-  const handleDownloadReport = () => {
+  const handleDownloadReport = async () => {
     const reportData = {
       service: 'VoiceShield Forensic Analysis Report',
       eventId: result.event_id,
@@ -108,15 +109,8 @@ export default function AnalysisResult({
       durationSeconds: result.duration_seconds
     };
 
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `VoiceShield_${result.event_id}_Report.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const fileName = `VoiceShield_${result.event_id}_Report.json`;
+    await downloadFileToDevice(JSON.stringify(reportData, null, 2), fileName, 'application/json');
   };
 
   return (

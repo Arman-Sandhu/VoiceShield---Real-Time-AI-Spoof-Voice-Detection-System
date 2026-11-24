@@ -16,13 +16,16 @@ import {
   FileText,
   X,
   CheckCircle2,
-  Globe
+  Globe,
+  Play,
+  Pause
 } from 'lucide-react';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import Card from '../ui/Card';
 import AudioWaveformVisualizer from './AudioWaveformVisualizer';
 import api from '../../services/api';
+import { downloadFileToDevice } from '../../utils/fileDownloader';
 import { encodeWAV } from '../../utils/wavEncoder';
 
 function downsampleTo16k(inputBuffer, inputSampleRate) {
@@ -63,6 +66,8 @@ export default function LiveCallShield({ user, username }) {
   );
 
   const [sessionCompleted, setSessionCompleted] = useState(null);
+  const [isReplayingSession, setIsReplayingSession] = useState(false);
+  const replayAudioRef = useRef(null);
 
   const audioContextRef = useRef(null);
   const mediaStreamRef = useRef(null);
@@ -348,6 +353,10 @@ export default function LiveCallShield({ user, username }) {
     return () => {
       stopVibration();
       stopLiveShield();
+      if (replayAudioRef.current) {
+        try { replayAudioRef.current.pause(); } catch {}
+        replayAudioRef.current = null;
+      }
     };
   }, []);
 
@@ -357,19 +366,30 @@ export default function LiveCallShield({ user, username }) {
     return `${mins.toString().padStart(2, '0')}:${rem.toString().padStart(2, '0')}`;
   };
 
-  const handleDownloadCallAudio = () => {
+  const handleToggleReplayAudio = () => {
     if (!sessionCompleted?.wavBlob) return;
-    const url = URL.createObjectURL(sessionCompleted.wavBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = sessionCompleted.fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (!replayAudioRef.current) {
+      const audioUrl = URL.createObjectURL(sessionCompleted.wavBlob);
+      const audio = new Audio(audioUrl);
+      audio.onended = () => setIsReplayingSession(false);
+      audio.onpause = () => setIsReplayingSession(false);
+      replayAudioRef.current = audio;
+    }
+
+    if (isReplayingSession) {
+      replayAudioRef.current.pause();
+      setIsReplayingSession(false);
+    } else {
+      replayAudioRef.current.play().then(() => setIsReplayingSession(true)).catch(() => {});
+    }
   };
 
-  const handleDownloadCallReport = () => {
+  const handleDownloadCallAudio = async () => {
+    if (!sessionCompleted?.wavBlob) return;
+    await downloadFileToDevice(sessionCompleted.wavBlob, sessionCompleted.fileName, 'audio/wav');
+  };
+
+  const handleDownloadCallReport = async () => {
     if (!sessionCompleted) return;
     const reportData = {
       service: 'VoiceShield Live Call Forensics',
@@ -384,15 +404,8 @@ export default function LiveCallShield({ user, username }) {
       rollingScoreHistory: rollingScores
     };
 
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `VoiceShield_Report_${sessionCompleted.fileName.replace('.wav', '.json')}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const fileName = `VoiceShield_Report_${sessionCompleted.fileName.replace('.wav', '.json')}`;
+    await downloadFileToDevice(JSON.stringify(reportData, null, 2), fileName, 'application/json');
   };
 
   const handleDismissAlert = () => {
@@ -644,7 +657,16 @@ export default function LiveCallShield({ user, username }) {
                 </h4>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant={isReplayingSession ? 'secondary' : 'outline'}
+                  size="sm"
+                  icon={isReplayingSession ? Pause : Play}
+                  onClick={handleToggleReplayAudio}
+                  className={isReplayingSession ? 'bg-[#00f5d4]/20 text-[#00f5d4] border-[#00f5d4]/40 shadow-[0_0_15px_rgba(0,245,212,0.3)] font-bold' : 'text-slate-300'}
+                >
+                  {isReplayingSession ? 'Pause Audio' : 'Play Audio'}
+                </Button>
                 <Button
                   variant="secondary"
                   size="sm"
