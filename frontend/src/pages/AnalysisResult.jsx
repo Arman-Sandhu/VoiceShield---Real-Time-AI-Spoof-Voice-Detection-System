@@ -352,40 +352,6 @@ export default function AnalysisResult({
               </div>
             </div>
 
-            {result.transcript ? (
-              <div className="p-4 rounded-xl bg-[#07080f]/90 border border-white/[0.06]">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Bot size={14} className="text-[#00d4ff]" />
-                  <span className="text-xs font-mono uppercase tracking-wider text-[#00d4ff] font-semibold">
-                    Spoken Audio Transcription & Trigger Analysis
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 italic leading-relaxed">
-                  "{result.transcript}"
-                </p>
-                {result.detected_triggers && result.detected_triggers.length > 0 && (
-                  <div className="mt-2.5 flex flex-wrap gap-2">
-                    {result.detected_triggers.map((trigger, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-rose-500/15 border border-rose-500/30 text-rose-300"
-                      >
-                        ⚠ {trigger}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-3.5 rounded-xl bg-[#07080f]/70 border border-white/[0.05] flex items-center justify-between text-xs font-mono text-slate-400">
-                <span className="flex items-center gap-2">
-                  <Bot size={14} className="text-[#00d4ff]" />
-                  Linguistic Analysis: Speech characteristics verified without malicious social engineering markers.
-                </span>
-                <span className="text-emerald-400 shrink-0">Clear</span>
-              </div>
-            )}
-
             <div>
               <h5 className="text-xs font-mono uppercase text-slate-400 tracking-wider mb-2.5">
                 Caller Situational Threat Indicators
@@ -437,6 +403,49 @@ export default function AnalysisResult({
                 </div>
               </div>
             </div>
+
+            {/* Spoken Audio Transcription placed below telemetry scan */}
+            {result.detected_language === 'Hindi' ? (
+              <div className="p-3.5 rounded-xl bg-[#07080f]/70 border border-white/[0.05] flex items-center justify-between text-xs font-mono text-slate-400">
+                <span className="flex items-center gap-2">
+                  <Globe size={14} className="text-[#00d4ff]" />
+                  Multilingual Acoustic Forensics: Hindi speech detected. Real-time acoustic deepfake scoring active.
+                </span>
+                <span className="text-emerald-400 shrink-0">Acoustics Analyzed</span>
+              </div>
+            ) : result.transcript ? (
+              <div className="p-4 rounded-xl bg-[#07080f]/90 border border-white/[0.06]">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Bot size={14} className="text-[#00d4ff]" />
+                  <span className="text-xs font-mono uppercase tracking-wider text-[#00d4ff] font-semibold">
+                    Spoken Audio Transcription & Trigger Analysis
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 italic leading-relaxed">
+                  "{result.transcript}"
+                </p>
+                {result.detected_triggers && result.detected_triggers.length > 0 && (
+                  <div className="mt-2.5 flex flex-wrap gap-2">
+                    {result.detected_triggers.map((trigger, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-rose-500/15 border border-rose-500/30 text-rose-300"
+                      >
+                        ⚠ {trigger}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-[#07080f]/70 border border-white/[0.05] flex items-center justify-between text-xs font-mono text-slate-400">
+                <span className="flex items-center gap-2">
+                  <Bot size={14} className="text-[#00d4ff]" />
+                  Linguistic Analysis: Speech characteristics verified without malicious social engineering markers.
+                </span>
+                <span className="text-emerald-400 shrink-0">Clear</span>
+              </div>
+            )}
 
             <div className={`p-4 rounded-xl border flex items-start gap-3 ${
               result.final_risk === 'HIGH' || result.final_risk === 'CRITICAL'

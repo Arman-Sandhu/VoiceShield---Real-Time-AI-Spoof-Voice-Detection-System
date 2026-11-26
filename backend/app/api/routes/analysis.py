@@ -90,7 +90,9 @@ async def analyze_file(
     model_name = model_result["model_name"]
 
     lang_info = speech_intelligence.detect_language(audio_data)
-    auto_context = speech_intelligence.infer_contextual_risk(audio_data)
+    auto_context = speech_intelligence.infer_contextual_risk(
+        audio_data, language_code=lang_info.get("language_code", "en")
+    )
 
     effective_unknown = bool(is_caller_unknown or auto_context["is_caller_unknown"])
     effective_sensitive = bool(is_sensitive_request or auto_context["is_sensitive_request"])

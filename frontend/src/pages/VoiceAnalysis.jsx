@@ -72,9 +72,9 @@ export default function VoiceAnalysis({ user, username }) {
     const formData = new FormData();
     formData.append('file', audioFile);
     formData.append('custom_file_name', audioFile.name);
-    formData.append('is_caller_unknown', contextFlags.is_caller_unknown ? 'true' : 'false');
-    formData.append('is_sensitive_request', contextFlags.is_sensitive_request ? 'true' : 'false');
-    formData.append('urgency_flag', contextFlags.urgency_flag ? 'true' : 'false');
+    formData.append('is_caller_unknown', 'false');
+    formData.append('is_sensitive_request', 'false');
+    formData.append('urgency_flag', 'false');
     formData.append('mode', activeTab === 'tts_sandbox' ? 'upload' : activeTab);
     const effectiveUsername = username || user?.displayName || '';
     if (effectiveUsername) {
@@ -242,15 +242,12 @@ export default function VoiceAnalysis({ user, username }) {
                   <div>
                     <span className="font-bold block mb-0.5">Automated Contextual Risk Inference</span>
                     <span className="text-[11px] text-slate-300">
-                      Our neural speech intelligence model automatically extracts language, transcription, and caller urgency signals from the audio. Manual overrides below are optional.
+                      Our neural speech intelligence model automatically extracts language, transcription, and caller urgency signals directly from the audio telemetry.
                     </span>
                   </div>
                 </div>
 
-                <ContextForm
-                  flags={contextFlags}
-                  onChange={setContextFlags}
-                />
+                <ContextForm />
 
                 {errorMessage && (
                   <div className="mt-6 flex items-start gap-2.5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">

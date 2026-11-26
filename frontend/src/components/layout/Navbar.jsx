@@ -20,16 +20,6 @@ export default function Navbar({ user, username, onUpdateUsername }) {
 
   const profileMenuRef = useRef(null);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
-        setIsProfileMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const handleOpenEditModal = () => {
     setEditNameInput(username || user?.displayName || '');
     setSaveError(null);

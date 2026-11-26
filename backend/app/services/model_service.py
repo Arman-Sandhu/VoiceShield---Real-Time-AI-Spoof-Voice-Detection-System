@@ -44,19 +44,24 @@ class DeepfakeModelService:
         """Loads pretrained Wav2Vec2 audio deepfake classifier and feature extractor once."""
         try:
             logger.info(f"Loading speech deepfake detection model: {self.model_name} on device: {self.device}")
-            self.feature_extractor = AutoFeatureExtractor.from_pretrained(self.model_name)
-            self.model = AutoModelForAudioClassification.from_pretrained(self.model_name)
+            try:
+                self.feature_extractor = AutoFeatureExtractor.from_pretrained(self.model_name, local_files_only=True)
+                self.model = AutoModelForAudioClassification.from_pretrained(self.model_name, local_files_only=True)
+            except Exception:
+                self.feature_extractor = AutoFeatureExtractor.from_pretrained(self.model_name)
+                self.model = AutoModelForAudioClassification.from_pretrained(self.model_name)
             self.model.to(self.device)
             self.model.eval()
 
-            # Dynamically resolve label mapping from model config
-            raw_labels = getattr(self.model.config, "id2label", {0: "fake", 1: "real"})
+            # Authoritative resolution of label mapping from model config
+            # VoiceShield model architecture standard: 0 = REAL (human), 1 = FAKE (synthetic)
+            self.real_idx = 0
+            self.fake_idx = 1
+            raw_labels = getattr(self.model.config, "id2label", {0: "real", 1: "fake"})
             self.id2label = {int(k): str(v) for k, v in raw_labels.items()}
             self.label2id = {v: k for k, v in self.id2label.items()}
 
             # Robust resolution of fake/real class indices across different HF model checkpoints
-            self.fake_idx = 0
-            self.real_idx = 1
             for idx, lbl in self.id2label.items():
                 lbl_lower = lbl.lower()
                 if any(w in lbl_lower for w in ["fake", "spoof", "synthetic", "cloned", "label_1"]):
@@ -205,16 +210,19 @@ class DeepfakeModelService:
                 else:
                     sorted_fakes = np.sort(chunk_fakes)
                     peak_fake = float(sorted_fakes[-1])
-                    k = max(1, min(len(sorted_fakes), (len(sorted_fakes) + 1) // 2))
-                    top_k_mean = float(np.mean(sorted_fakes[-k:]))
-                    # 70% peak burst + 30% top active speech windows
-                    effective_fake_prob = float(0.70 * peak_fake + 0.30 * top_k_mean)
+                    median_fake = float(np.median(sorted_fakes))
+                    half_k = max(1, len(sorted_fakes) // 2)
+                    top_half_mean = float(np.mean(sorted_fakes[-half_k:]))
+                    
+                    # Robust calibrated blend: 35% peak burst + 35% active speech top mean + 30% median
+                    # Prevents single-window clipping / crop boundary pop from falsely flagging human audio
+                    effective_fake_prob = float(0.35 * peak_fake + 0.35 * top_half_mean + 0.30 * median_fake)
 
                 raw_fake_prob = effective_fake_prob
 
                 logger.info(
                     f"Temporal sliding window aggregation: windows={len(chunks)}, peak_fake={peak_fake:.4f}, "
-                    f"effective_fake={effective_fake_prob:.4f}"
+                    f"median_fake={median_fake:.4f}, effective_fake={effective_fake_prob:.4f}"
                 )
 
             # Strict Binary Classification driven purely by deep learning model
