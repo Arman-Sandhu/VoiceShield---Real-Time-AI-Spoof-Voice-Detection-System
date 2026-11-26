@@ -459,7 +459,26 @@ class HistoryService:
         # Attempt Supabase
         if self.supabase:
             try:
-                res = self.supabase.table("analysis_history").insert(saved_record).execute()
+                supabase_record = {
+                    "event_id": event_id,
+                    "user_id": user_id,
+                    "mode": mode,
+                    "duration": norm_duration,
+                    "model_name": model_name,
+                    "fake_score": round(fake_score, 4),
+                    "real_score": round(real_score, 4),
+                    "prediction": prediction,
+                    "context_risk": context_risk,
+                    "final_risk": final_risk,
+                    "risk_explanation": risk_explanation,
+                    "file_name": file_name,
+                    "username": effective_username,
+                    "user_email": resolved_email,
+                    "language": detected_language,
+                    "is_flagged": is_flagged,
+                    "created_at": created_at_iso
+                }
+                res = self.supabase.table("analysis_history").insert(supabase_record).execute()
                 if res.data:
                     logger.info(f"Record {event_id} stored in Supabase under user subspace {user_id}.")
                     
@@ -623,6 +642,11 @@ class HistoryService:
                     .execute()
                 )
                 if res.data is not None:
+                    for row in res.data:
+                        if not row.get("detected_language") and row.get("language"):
+                            row["detected_language"] = row["language"]
+                        if not row.get("transcript"):
+                            row["transcript"] = ""
                     return res.data
             except Exception as e:
                 logger.warning(f"Supabase select failed ({e}). Falling back to SQLite.")
@@ -676,6 +700,10 @@ class HistoryService:
                     item = res.data[0]
                     item["is_flagged"] = bool(item.get("is_flagged", False))
                     item["file_name"] = item.get("file_name", "")
+                    if not item.get("detected_language") and item.get("language"):
+                        item["detected_language"] = item["language"]
+                    if not item.get("transcript"):
+                        item["transcript"] = ""
                     return item
             except Exception as e:
                 logger.warning(f"Supabase lookup failed ({e}). Falling back to SQLite.")
