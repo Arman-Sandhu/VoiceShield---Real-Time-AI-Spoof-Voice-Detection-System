@@ -80,6 +80,15 @@ export default function History({ user, username }) {
 
   useEffect(() => {
     fetchLogs();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setSelectedRecord(null);
+        setEditingEventId(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleToggleFlag = async (eventId, e) => {
@@ -493,33 +502,46 @@ export default function History({ user, username }) {
       {/* Detail Modal */}
       <AnimatePresence>
         {selectedRecord && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto"
+            onClick={() => setSelectedRecord(null)}
+          >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-xl bg-[#0f1117] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative"
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-xl max-h-[90vh] bg-[#0f1117] border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative my-auto"
             >
-              <button
-                onClick={() => setSelectedRecord(null)}
-                className="absolute top-6 right-6 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors"
-              >
-                <X size={20} />
-              </button>
+              {/* Sticky Top Header */}
+              <div className="p-6 sm:px-8 sm:pt-6 sm:pb-4 border-b border-white/[0.06] bg-[#0f1117] flex items-start justify-between gap-4 z-10 shrink-0">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-mono text-[#00d4ff] uppercase">
+                      RECORD DETAILS
+                    </span>
+                    <span className="text-xs text-slate-500">&bull;</span>
+                    <span className="text-xs font-mono text-slate-400">{selectedRecord.event_id}</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-display font-bold text-white">
+                    Verification Telemetry
+                  </h3>
+                </div>
 
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-mono text-[#00d4ff] uppercase">
-                  RECORD DETAILS
-                </span>
-                <span className="text-xs text-slate-500">&bull;</span>
-                <span className="text-xs font-mono text-slate-400">{selectedRecord.event_id}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRecord(null)}
+                  className="text-slate-400 hover:text-white p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors flex items-center gap-1.5 text-xs font-mono"
+                  title="Close (Esc)"
+                >
+                  <X size={18} />
+                  <span className="hidden sm:inline">Close</span>
+                </button>
               </div>
 
-              <h3 className="text-2xl font-display font-bold text-white mb-6">
-                Verification Telemetry
-              </h3>
-
-              <div className="space-y-6">
+              {/* Scrollable Modal Content */}
+              <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
                 <RiskBadge riskLevel={selectedRecord.final_risk || 'LOW'} showDescription={false} />
 
                 {/* Score and Classification */}
@@ -668,7 +690,8 @@ export default function History({ user, username }) {
                 </div>
               </div>
 
-              <div className="mt-8 flex items-center justify-between gap-3">
+              {/* Sticky Bottom Actions */}
+              <div className="p-4 sm:px-8 sm:py-4 border-t border-white/[0.06] bg-[#0b0d13] flex items-center justify-between gap-3 shrink-0">
                 <Button
                   variant="secondary"
                   size="sm"
