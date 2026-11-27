@@ -142,10 +142,11 @@ class DeepfakeModelService:
             active_device = self.device
 
             temperature = 1.0
-            window_samples = int(3.0 * self.sampling_rate)
-            stride_samples = int(1.0 * self.sampling_rate)
+            # Direct full-clip inference for audio <= 15.0s (matches training/benchmark pipeline)
+            # Wav2Vec 2.0 XLSR-53 natively handles up to 15s continuously without zero-padding distortion
+            max_direct_samples = int(15.0 * self.sampling_rate)
 
-            if len(audio_data) <= window_samples:
+            if len(audio_data) <= max_direct_samples:
                 inputs = self.feature_extractor(
                     audio_data,
                     sampling_rate=self.sampling_rate,
@@ -167,31 +168,29 @@ class DeepfakeModelService:
 
                 raw_fake_prob = float(probs[self.fake_idx])
                 effective_fake_prob = raw_fake_prob
+                logger.info(f"Direct neural sequence inference (len={len(audio_data)}): fake={effective_fake_prob:.4f}")
             else:
+                # For long audio (> 15s), use uniform 4.0s windows without zero padding
+                window_samples = int(4.0 * self.sampling_rate)
+                stride_samples = int(2.0 * self.sampling_rate)
                 chunks = []
-                chunk_rms = []
-                min_chunk_len = int(0.5 * self.sampling_rate)
 
-                for start_idx in range(0, len(audio_data) - min_chunk_len, stride_samples):
-                    end_idx = min(start_idx + window_samples, len(audio_data))
-                    chunk = audio_data[start_idx:end_idx]
-                    if len(chunk) < min_chunk_len:
-                        continue
-                    c_rms = float(np.sqrt(np.mean(chunk**2)))
-                    if c_rms < 0.012 and len(chunks) > 0:
-                        continue
+                for start_idx in range(0, len(audio_data) - window_samples + 1, stride_samples):
+                    chunk = audio_data[start_idx : start_idx + window_samples]
                     chunks.append(chunk)
-                    chunk_rms.append(max(c_rms, 0.005))
+
+                # Append trailing window from end if audio not exactly aligned
+                if len(audio_data) > window_samples and (len(audio_data) - window_samples) % stride_samples != 0:
+                    chunks.append(audio_data[-window_samples:])
 
                 if not chunks:
-                    chunks = [audio_data]
-                    chunk_rms = [1.0]
+                    chunks = [audio_data[:window_samples]]
 
                 inputs = self.feature_extractor(
                     chunks,
                     sampling_rate=self.sampling_rate,
                     return_tensors="pt",
-                    padding=True
+                    padding=False
                 )
                 input_values = inputs.input_values.to(active_device)
                 attn_mask = getattr(inputs, "attention_mask", None)
@@ -204,25 +203,21 @@ class DeepfakeModelService:
                     probs = torch.softmax(logits / temperature, dim=-1)
                     chunk_fakes = probs[:, self.fake_idx].cpu().numpy()
 
-                # Calibrated aggregation: focus on high-confidence active speech windows
                 if len(chunk_fakes) == 1:
                     effective_fake_prob = float(chunk_fakes[0])
                 else:
                     sorted_fakes = np.sort(chunk_fakes)
-                    peak_fake = float(sorted_fakes[-1])
                     median_fake = float(np.median(sorted_fakes))
-                    half_k = max(1, len(sorted_fakes) // 2)
-                    top_half_mean = float(np.mean(sorted_fakes[-half_k:]))
-                    
-                    # Robust calibrated blend: 35% peak burst + 35% active speech top mean + 30% median
-                    # Prevents single-window clipping / crop boundary pop from falsely flagging human audio
-                    effective_fake_prob = float(0.35 * peak_fake + 0.35 * top_half_mean + 0.30 * median_fake)
+                    mean_fake = float(np.mean(sorted_fakes))
+                    peak_fake = float(sorted_fakes[-1])
+                    # Balanced temporal aggregate: 50% mean + 30% median + 20% peak
+                    effective_fake_prob = float(0.50 * mean_fake + 0.30 * median_fake + 0.20 * peak_fake)
 
                 raw_fake_prob = effective_fake_prob
 
                 logger.info(
-                    f"Temporal sliding window aggregation: windows={len(chunks)}, peak_fake={peak_fake:.4f}, "
-                    f"median_fake={median_fake:.4f}, effective_fake={effective_fake_prob:.4f}"
+                    f"Temporal multi-window aggregation: windows={len(chunks)}, "
+                    f"mean={mean_fake:.4f}, median={median_fake:.4f}, effective_fake={effective_fake_prob:.4f}"
                 )
 
             # Strict Binary Classification driven purely by deep learning model
