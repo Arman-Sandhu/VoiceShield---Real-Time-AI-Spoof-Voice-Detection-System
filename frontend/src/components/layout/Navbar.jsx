@@ -290,7 +290,7 @@ export default function Navbar({ user, username, onUpdateUsername }) {
                       className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-mono text-slate-200 hover:text-white hover:bg-white/5 transition-all text-left cursor-pointer group border border-transparent hover:border-white/10"
                     >
                       <Key size={15} className="text-[#00d4ff] group-hover:scale-110 transition-transform" />
-                      <span>Account Settings & Change Email</span>
+                      <span>Account Security & Password</span>
                     </button>
 
                     <button

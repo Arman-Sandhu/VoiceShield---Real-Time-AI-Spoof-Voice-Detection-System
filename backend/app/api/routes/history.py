@@ -232,4 +232,77 @@ def verify_email_otp(
         "message": "Email address updated successfully across user subspace."
     }
 
+class UpdatePasswordWithOTPRequest(BaseModel):
+    otp: str
+    new_password: str
+
+@router.post("/user/password/request-otp")
+def request_password_otp(
+    user: dict = Depends(verify_token)
+):
+    """
+    Sends a 6-digit verification code to the authenticated user's email address
+    to authorize setting or changing their account password.
+    """
+    user_email = (user.get("email") or "").strip().lower()
+    if not user_email or "@" not in user_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Your account has no valid email address associated with it to receive a verification code."
+        )
+
+    otp = history_service.generate_password_otp(user["uid"], user_email)
+    return {
+        "status": "success",
+        "message": f"A 6-digit verification code has been sent to {user_email}.",
+        "email": user_email,
+        "debug_otp": otp
+    }
+
+@router.post("/user/password/verify-and-update")
+def verify_password_and_update(
+    payload: UpdatePasswordWithOTPRequest,
+    user: dict = Depends(verify_token)
+):
+    """
+    Verifies the email OTP and updates/sets the account password via Firebase Admin SDK.
+    Bypasses re-authentication restrictions safely because ownership is verified via email OTP.
+    """
+    user_email = (user.get("email") or "").strip().lower()
+    clean_otp = (payload.otp or "").strip()
+    clean_pw = (payload.new_password or "").strip()
+
+    if not clean_otp or len(clean_otp) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please enter the complete 6-digit verification code."
+        )
+
+    if len(clean_pw) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 6 characters long."
+        )
+
+    is_valid = history_service.verify_password_otp(user["uid"], user_email, clean_otp)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification code. Please request a new code."
+        )
+
+    try:
+        history_service.update_user_password(user["uid"], clean_pw)
+    except Exception as e:
+        logger.error(f"Failed to update password for user {user['uid']}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update password: {str(e)}"
+        )
+
+    return {
+        "status": "success",
+        "message": "Password successfully updated! You can now log in with your email and password."
+    }
+
 

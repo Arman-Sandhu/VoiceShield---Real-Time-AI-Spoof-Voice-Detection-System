@@ -340,6 +340,90 @@ class HistoryService:
 
         return False
 
+    def _send_email_otp(self, to_email: str, otp: str, purpose: str = "password") -> bool:
+        """
+        Dispatches a 6-digit OTP email using SMTP if configured in environment variables.
+        Gracefully logs OTP and returns False if SMTP credentials are not configured or on network error.
+        """
+        import os, smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+
+        smtp_host = os.environ.get("SMTP_HOST")
+        smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+        smtp_user = os.environ.get("SMTP_USER")
+        smtp_password = os.environ.get("SMTP_PASSWORD")
+        smtp_from = os.environ.get("SMTP_FROM", smtp_user or "noreply@voiceshield.ai")
+
+        subject_action = "Set or Change Account Password" if purpose == "password" else "Verify Email Address"
+        subject = f"[VoiceShield] Your Verification Code: {otp}"
+
+        html_body = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #f1f5f9; padding: 24px; margin: 0; }}
+    .container {{ max-width: 520px; margin: 0 auto; background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }}
+    .header {{ text-align: center; margin-bottom: 24px; }}
+    .logo {{ font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #00d4ff; }}
+    .logo span {{ color: #ffffff; }}
+    .title {{ font-size: 18px; font-weight: 700; color: #ffffff; margin-top: 12px; }}
+    .otp-box {{ background: #1e293b; border: 2px dashed #00d4ff; border-radius: 12px; text-align: center; padding: 18px; margin: 24px 0; }}
+    .otp-code {{ font-family: 'Courier New', Courier, monospace; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #00d4ff; }}
+    .warning {{ font-size: 13px; color: #94a3b8; line-height: 1.6; margin-top: 20px; border-top: 1px solid #1f2937; padding-top: 16px; }}
+    .footer {{ text-align: center; margin-top: 24px; font-size: 11px; color: #64748b; }}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">VOICE<span>SHIELD</span></div>
+      <div class="title">{subject_action}</div>
+    </div>
+    <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1;">
+      You requested a verification code to <strong>{subject_action.lower()}</strong> on your VoiceShield account.
+    </p>
+    <div class="otp-box">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin-bottom: 6px;">Your 6-Digit Verification Code</div>
+      <div class="otp-code">{otp}</div>
+    </div>
+    <p style="font-size: 13px; color: #94a3b8; text-align: center;">
+      This code will expire in <strong>10 minutes</strong>. Do not share this code with anyone.
+    </p>
+    <div class="warning">
+      <strong>Security Notice:</strong> VoiceShield staff will never ask for your password or verification code. If you did not initiate this request, you can safely ignore this email.
+    </div>
+    <div class="footer">
+      &copy; VoiceShield AI Cyber Defense System. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>"""
+        text_body = f"VoiceShield Verification Code\n\nYour 6-digit verification code to {subject_action.lower()} is: {otp}\n\nThis code expires in 10 minutes. If you did not request this, please ignore this email."
+
+        if not (smtp_host and smtp_user and smtp_password):
+            logger.info(f"[EmailOTP] SMTP not configured. OTP generated for {to_email}: {otp}")
+            return False
+
+        try:
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = f"VoiceShield Security <{smtp_from}>"
+            msg["To"] = to_email
+            msg.attach(MIMEText(text_body, "plain"))
+            msg.attach(MIMEText(html_body, "html"))
+
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_password)
+                server.sendmail(smtp_from, [to_email], msg.as_string())
+            logger.info(f"[EmailOTP] Successfully dispatched OTP email to {to_email}")
+            return True
+        except Exception as e:
+            logger.warning(f"[EmailOTP] Failed to send email via SMTP: {e}. OTP was: {otp}")
+            return False
+
     def generate_email_otp(self, user_id: str, new_email: str) -> str:
         import secrets, time
         clean_email = new_email.strip().lower()
@@ -352,7 +436,53 @@ class HistoryService:
             "expires_at": time.time() + 600
         }
         logger.info(f"[EmailChangeOTP] Generated OTP for user {user_id} -> {clean_email}: {otp}")
+        self._send_email_otp(to_email=clean_email, otp=otp, purpose="email")
         return otp
+
+    def generate_password_otp(self, user_id: str, email: str) -> str:
+        import secrets, time
+        clean_email = email.strip().lower()
+        otp = str(secrets.randbelow(900000) + 100000)
+        if not hasattr(self, "_password_otp_cache"):
+            self._password_otp_cache = {}
+        self._password_otp_cache[user_id] = {
+            "email": clean_email,
+            "otp": otp,
+            "expires_at": time.time() + 600
+        }
+        logger.info(f"[PasswordOTP] Generated OTP for user {user_id} -> {clean_email}: {otp}")
+        self._send_email_otp(to_email=clean_email, otp=otp, purpose="password")
+        return otp
+
+    def verify_password_otp(self, user_id: str, email: str, otp: str) -> bool:
+        import time
+        if not hasattr(self, "_password_otp_cache"):
+            return False
+        record = self._password_otp_cache.get(user_id)
+        if not record:
+            return False
+        if time.time() > record["expires_at"]:
+            del self._password_otp_cache[user_id]
+            return False
+        if record["email"] != email.strip().lower() or record["otp"] != otp.strip():
+            return False
+
+        del self._password_otp_cache[user_id]
+        return True
+
+    def update_user_password(self, user_id: str, new_password: str) -> Dict[str, Any]:
+        clean_pw = (new_password or "").strip()
+        if len(clean_pw) < 6:
+            raise ValueError("Password must be at least 6 characters long.")
+
+        try:
+            from firebase_admin import auth as fb_admin_auth
+            fb_admin_auth.update_user(user_id, password=clean_pw)
+            logger.info(f"[PasswordUpdate] Successfully updated password for user {user_id}")
+            return {"status": "success", "message": "Password updated successfully."}
+        except Exception as e:
+            logger.error(f"[PasswordUpdate] Error updating password for user {user_id}: {e}")
+            raise
 
     def verify_email_otp(self, user_id: str, new_email: str, otp: str) -> bool:
         import time
