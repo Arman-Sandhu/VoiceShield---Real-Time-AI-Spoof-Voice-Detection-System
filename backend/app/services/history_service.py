@@ -414,10 +414,18 @@ class HistoryService:
             msg.attach(MIMEText(text_body, "plain"))
             msg.attach(MIMEText(html_body, "html"))
 
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-                server.starttls()
-                server.login(smtp_user, smtp_password)
-                server.sendmail(smtp_from, [to_email], msg.as_string())
+            if smtp_port == 465:
+                with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=12) as server:
+                    server.login(smtp_user, smtp_password)
+                    server.sendmail(smtp_from, [to_email], msg.as_string())
+            else:
+                with smtplib.SMTP(smtp_host, smtp_port, timeout=12) as server:
+                    try:
+                        server.starttls()
+                    except Exception:
+                        pass
+                    server.login(smtp_user, smtp_password)
+                    server.sendmail(smtp_from, [to_email], msg.as_string())
             logger.info(f"[EmailOTP] Successfully dispatched OTP email to {to_email}")
             return True
         except Exception as e:

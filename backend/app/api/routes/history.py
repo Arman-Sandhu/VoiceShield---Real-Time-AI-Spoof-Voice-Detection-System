@@ -191,11 +191,10 @@ def request_email_otp(
             detail="This email address is already in use by another account."
         )
 
-    otp = history_service.generate_email_otp(user["uid"], clean_email)
+    history_service.generate_email_otp(user["uid"], clean_email)
     return {
         "status": "success",
-        "message": f"Verification code sent to {clean_email}.",
-        "debug_otp": otp
+        "message": f"Verification code sent to {clean_email}."
     }
 
 @router.post("/user/email/verify-otp")
@@ -251,12 +250,11 @@ def request_password_otp(
             detail="Your account has no valid email address associated with it to receive a verification code."
         )
 
-    otp = history_service.generate_password_otp(user["uid"], user_email)
+    history_service.generate_password_otp(user["uid"], user_email)
     return {
         "status": "success",
         "message": f"A 6-digit verification code has been sent to {user_email}.",
-        "email": user_email,
-        "debug_otp": otp
+        "email": user_email
     }
 
 @router.post("/user/password/verify-and-update")
