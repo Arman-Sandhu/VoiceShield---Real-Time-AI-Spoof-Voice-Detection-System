@@ -32,14 +32,14 @@ const SCAM_PRESETS = [
 ];
 
 const VOICES = [
+  { id: 'hi-IN-MadhurNeural', name: 'Madhur', gender: 'Male', lang: 'Hindi (India)', tone: 'Authoritative Hindi' },
+  { id: 'hi-IN-SwaraNeural', name: 'Swara', gender: 'Female', lang: 'Hindi (India)', tone: 'Expressive Hindi' },
+  { id: 'en-IN-PrabhatNeural', name: 'Prabhat', gender: 'Male', lang: 'English (India)', tone: 'Support / Tech Accent' },
+  { id: 'en-IN-NeerjaNeural', name: 'Neerja', gender: 'Female', lang: 'English (India)', tone: 'Customer Service' },
   { id: 'en-US-ChristopherNeural', name: 'Christopher', gender: 'Male', lang: 'English (US)', tone: 'Executive / Corporate' },
   { id: 'en-US-JennyNeural', name: 'Jenny', gender: 'Female', lang: 'English (US)', tone: 'Natural / Conversational' },
   { id: 'en-GB-RyanNeural', name: 'Ryan', gender: 'Male', lang: 'English (UK)', tone: 'British Formal' },
-  { id: 'en-GB-SoniaNeural', name: 'Sonia', gender: 'Female', lang: 'English (UK)', tone: 'British Calm' },
-  { id: 'en-IN-PrabhatNeural', name: 'Prabhat', gender: 'Male', lang: 'English (India)', tone: 'Support / Tech Accent' },
-  { id: 'en-IN-NeerjaNeural', name: 'Neerja', gender: 'Female', lang: 'English (India)', tone: 'Customer Service' },
-  { id: 'hi-IN-MadhurNeural', name: 'Madhur', gender: 'Male', lang: 'Hindi (India)', tone: 'Authoritative Hindi' },
-  { id: 'hi-IN-SwaraNeural', name: 'Swara', gender: 'Female', lang: 'Hindi (India)', tone: 'Expressive Hindi' }
+  { id: 'en-GB-SoniaNeural', name: 'Sonia', gender: 'Female', lang: 'English (UK)', tone: 'British Calm' }
 ];
 
 export default function TTSVoiceSandbox({ onAudioReady, onReset, onAutoAnalyze }) {
@@ -53,13 +53,23 @@ export default function TTSVoiceSandbox({ onAudioReady, onReset, onAutoAnalyze }
   const [audioElem, setAudioElem] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const isHindiText = /[\u0900-\u097F]/.test(text);
+
   const handleGenerate = async (targetText = null, targetVoice = null) => {
     const payloadText = (targetText || text).trim();
-    const payloadVoice = targetVoice || selectedVoice;
+    let payloadVoice = targetVoice || selectedVoice;
 
     if (!payloadText) {
       setErrorMessage('Please enter text to synthesize.');
       return;
+    }
+
+    // Auto-detect Hindi script: English-only voice models fail on Devanagari Unicode.
+    // Gracefully route to native Hindi voice matching selected gender:
+    if (/[\u0900-\u097F]/.test(payloadText) && !payloadVoice.startsWith('hi-IN')) {
+      const voiceInfo = VOICES.find((v) => v.id === payloadVoice);
+      payloadVoice = voiceInfo?.gender === 'Female' ? 'hi-IN-SwaraNeural' : 'hi-IN-MadhurNeural';
+      setSelectedVoice(payloadVoice);
     }
 
     setGenerating(true);
@@ -180,6 +190,15 @@ export default function TTSVoiceSandbox({ onAudioReady, onReset, onAutoAnalyze }
         </div>
       </div>
 
+      {isHindiText && !selectedVoice.startsWith('hi-IN') && (
+        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-center gap-2">
+          <Sparkles size={16} className="text-amber-400 shrink-0" />
+          <span>
+            Hindi Devanagari text detected. English voices cannot pronounce Hindi script; audio will automatically synthesize using <strong>Madhur (Hindi Neural)</strong>.
+          </span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-mono uppercase text-slate-400 mb-1.5">
@@ -188,13 +207,22 @@ export default function TTSVoiceSandbox({ onAudioReady, onReset, onAutoAnalyze }
           <select
             value={selectedVoice}
             onChange={(e) => setSelectedVoice(e.target.value)}
-            className="w-full bg-[#161b27] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#00d4ff] font-mono"
+            className="w-full bg-[#161b27] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#00d4ff] font-mono cursor-pointer"
           >
-            {VOICES.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.gender === 'Male' ? '♂️' : '♀️'} {v.name} ({v.lang}) - {v.tone}
-              </option>
-            ))}
+            <optgroup label="Hindi Neural Voices (Required for Hindi text)">
+              {VOICES.filter((v) => v.lang.includes('Hindi')).map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.gender === 'Male' ? '♂️' : '♀️'} {v.name} ({v.lang}) - {v.tone}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="English Neural Voices (For English text)">
+              {VOICES.filter((v) => !v.lang.includes('Hindi')).map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.gender === 'Male' ? '♂️' : '♀️'} {v.name} ({v.lang}) - {v.tone}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
 

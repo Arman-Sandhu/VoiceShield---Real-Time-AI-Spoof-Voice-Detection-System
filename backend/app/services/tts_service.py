@@ -1,4 +1,5 @@
 import io
+import re
 import asyncio
 import edge_tts
 from typing import List, Dict, Any
@@ -93,17 +94,42 @@ class TTSService:
         if not matched_voice:
             matched_voice = "en-US-ChristopherNeural"
 
-        communicate = edge_tts.Communicate(clean_text, matched_voice)
-        audio_buffer = io.BytesIO()
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_buffer.write(chunk["data"])
+        # Check if text contains Hindi Devanagari characters (U+0900 to U+097F)
+        is_devanagari = bool(re.search(r"[\u0900-\u097F]", clean_text))
 
-        audio_bytes = audio_buffer.getvalue()
-        if not audio_bytes:
-            raise RuntimeError("TTS generation resulted in empty audio buffer.")
+        # English-only voices fail with 'No audio was received' when given Devanagari script.
+        # Intelligently route to native Hindi voice matching selected gender:
+        if is_devanagari and not matched_voice.startswith("hi-IN"):
+            voice_info = next((v for v in CURATED_VOICES if v["id"] == matched_voice), None)
+            if voice_info and voice_info.get("gender") == "Female":
+                matched_voice = "hi-IN-SwaraNeural"
+            else:
+                matched_voice = "hi-IN-MadhurNeural"
 
-        return audio_bytes
+        try:
+            communicate = edge_tts.Communicate(clean_text, matched_voice)
+            audio_buffer = io.BytesIO()
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio_buffer.write(chunk["data"])
+
+            audio_bytes = audio_buffer.getvalue()
+            if audio_bytes:
+                return audio_bytes
+        except Exception:
+            # Resilient fallback if the selected voice encountered a synthesis exception
+            fallback_voice = "hi-IN-MadhurNeural" if is_devanagari else "en-US-ChristopherNeural"
+            if matched_voice != fallback_voice:
+                communicate = edge_tts.Communicate(clean_text, fallback_voice)
+                audio_buffer = io.BytesIO()
+                async for chunk in communicate.stream():
+                    if chunk["type"] == "audio":
+                        audio_buffer.write(chunk["data"])
+                audio_bytes = audio_buffer.getvalue()
+                if audio_bytes:
+                    return audio_bytes
+
+        raise RuntimeError("TTS generation resulted in empty audio buffer.")
 
 tts_service = TTSService()
 
