@@ -167,7 +167,7 @@ export default function AudioPlayer({
   if (!sourceUrl) return null;
 
   return (
-    <div className={`audio-player-container w-full bg-[#070b12] border border-white/[0.08] rounded-2xl p-4 backdrop-blur-xl flex flex-col gap-3 shadow-xl ${className}`}>
+    <div className={`w-full bg-[#070b12] border border-white/[0.08] rounded-2xl p-4 backdrop-blur-xl flex flex-col gap-3 shadow-xl ${className}`}>
       <audio ref={audioRef} src={sourceUrl} preload="metadata" />
 
       {/* Header bar: Title & Duration */}
