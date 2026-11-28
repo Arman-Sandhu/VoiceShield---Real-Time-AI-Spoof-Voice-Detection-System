@@ -308,12 +308,12 @@ export default function AnalysisResult({
                 <Info size={16} className="text-[#00d4ff]" />
                 Threat Synthesis & Analysis Summary
               </h4>
-              <p className="text-sm text-slate-200 leading-relaxed bg-[#07080f]/80 p-4 rounded-xl border border-white/[0.06]">
+              <p className="threat-summary-text text-sm text-slate-200 leading-relaxed bg-[#07080f]/80 p-4 rounded-xl border border-white/[0.06]">
                 {result.risk_explanation || 'Assessment completed successfully.'}
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#07080f]/90 border border-white/[0.06] flex flex-col gap-3">
+            <div className="telemetry-metrics-box p-4 rounded-xl bg-[#07080f]/90 border border-white/[0.06] flex flex-col gap-3">
               <div className="flex items-center justify-between border-b border-white/[0.05] pb-2">
                 <span className="text-xs font-mono uppercase tracking-wider text-[#00d4ff] font-semibold flex items-center gap-1.5">
                   <Activity size={14} /> Acoustic Forensics & Feature Telemetry
@@ -357,10 +357,10 @@ export default function AnalysisResult({
                 Caller Situational Threat Indicators
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className={`p-3 rounded-xl border flex items-center gap-2.5 ${
+                <div className={`threat-indicator-card p-3 rounded-xl border flex items-center gap-2.5 ${
                   result.context_flags?.is_caller_unknown
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                    : 'bg-white/5 border-white/5 text-slate-400'
+                    ? 'threat-indicator-active bg-amber-500/10 border-amber-500/30 text-amber-300'
+                    : 'threat-indicator-safe bg-white/5 border-white/5 text-slate-400'
                 }`}>
                   {result.context_flags?.is_caller_unknown ? (
                     <AlertTriangle size={15} className="text-amber-400 shrink-0" />
@@ -372,10 +372,10 @@ export default function AnalysisResult({
                   </span>
                 </div>
 
-                <div className={`p-3 rounded-xl border flex items-center gap-2.5 ${
+                <div className={`threat-indicator-card p-3 rounded-xl border flex items-center gap-2.5 ${
                   result.context_flags?.is_sensitive_request
-                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                    : 'bg-white/5 border-white/5 text-slate-400'
+                    ? 'threat-indicator-active bg-rose-500/10 border-rose-500/30 text-rose-300'
+                    : 'threat-indicator-safe bg-white/5 border-white/5 text-slate-400'
                 }`}>
                   {result.context_flags?.is_sensitive_request ? (
                     <AlertTriangle size={15} className="text-rose-400 shrink-0" />
@@ -387,10 +387,10 @@ export default function AnalysisResult({
                   </span>
                 </div>
 
-                <div className={`p-3 rounded-xl border flex items-center gap-2.5 ${
+                <div className={`threat-indicator-card p-3 rounded-xl border flex items-center gap-2.5 ${
                   result.context_flags?.urgency_flag
-                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                    : 'bg-white/5 border-white/5 text-slate-400'
+                    ? 'threat-indicator-active bg-rose-500/10 border-rose-500/30 text-rose-300'
+                    : 'threat-indicator-safe bg-white/5 border-white/5 text-slate-400'
                 }`}>
                   {result.context_flags?.urgency_flag ? (
                     <AlertTriangle size={15} className="text-rose-400 shrink-0" />
@@ -414,7 +414,7 @@ export default function AnalysisResult({
                 <span className="text-emerald-400 shrink-0">Acoustics Analyzed</span>
               </div>
             ) : result.transcript ? (
-              <div className="p-4 rounded-xl bg-[#07080f]/90 border border-white/[0.06]">
+              <div className="transcription-trigger-box p-4 rounded-xl bg-[#07080f]/90 border border-white/[0.06]">
                 <div className="flex items-center gap-2 mb-1.5">
                   <Bot size={14} className="text-[#00d4ff]" />
                   <span className="text-xs font-mono uppercase tracking-wider text-[#00d4ff] font-semibold">
@@ -429,7 +429,7 @@ export default function AnalysisResult({
                     {result.detected_triggers.map((trigger, idx) => (
                       <span
                         key={idx}
-                        className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-rose-500/15 border border-rose-500/30 text-rose-300"
+                        className="transcription-trigger-badge px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-rose-500/15 border border-rose-500/30 text-rose-300 font-semibold"
                       >
                         ⚠ {trigger}
                       </span>
@@ -447,10 +447,10 @@ export default function AnalysisResult({
               </div>
             )}
 
-            <div className={`p-4 rounded-xl border flex items-start gap-3 ${
+            <div className={`defensive-action-box p-4 rounded-xl border flex items-start gap-3 ${
               result.final_risk === 'HIGH' || result.final_risk === 'CRITICAL'
-                ? 'bg-rose-500/10 border-rose-500/30 text-rose-200'
-                : 'bg-[#00f5d4]/5 border-[#00f5d4]/20 text-slate-300'
+                ? 'defensive-action-critical bg-rose-500/10 border-rose-500/30 text-rose-200'
+                : 'defensive-action-normal bg-[#00f5d4]/5 border-[#00f5d4]/20 text-slate-300'
             }`}>
               <ShieldCheck size={18} className={`shrink-0 mt-0.5 ${
                 result.final_risk === 'HIGH' || result.final_risk === 'CRITICAL'

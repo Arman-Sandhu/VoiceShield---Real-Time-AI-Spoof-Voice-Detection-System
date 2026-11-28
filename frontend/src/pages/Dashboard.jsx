@@ -164,7 +164,7 @@ export default function Dashboard({ user, username }) {
       </div>
 
       {/* Quick Analysis Callout */}
-      <div className="p-8 rounded-3xl bg-gradient-to-r from-[#00d4ff]/15 via-[#0f1117] to-[#a855f7]/15 border border-white/[0.1] flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="dashboard-callout-banner p-8 rounded-3xl bg-gradient-to-r from-[#00d4ff]/15 via-[#0f1117] to-[#a855f7]/15 border border-white/[0.1] flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
           <Badge variant="cyan" size="sm" className="mb-2">Near-Real-Time Verification</Badge>
           <h3 className="text-2xl font-display font-bold text-white">
@@ -215,7 +215,7 @@ export default function Dashboard({ user, username }) {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#0f1117]">
+          <div className="dashboard-table-card overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#0f1117]">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="border-b border-white/[0.08] bg-white/[0.02] text-xs font-mono text-slate-400 uppercase tracking-wider">

@@ -60,23 +60,23 @@ export default function RiskBadge({ riskLevel = 'LOW', size = 'lg', showDescript
     <motion.div
       initial={{ scale: 0.95, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className={`flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-xl ${config.bg}`}
+      className={`risk-banner risk-banner-${level.toLowerCase()} flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-xl ${config.bg}`}
     >
-      <div className={`w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center ${config.color} shrink-0`}>
+      <div className={`risk-banner-icon w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center ${config.color} shrink-0`}>
         <Icon size={26} />
       </div>
 
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-mono uppercase text-slate-400 tracking-widest">
+          <span className="risk-banner-subtitle text-[11px] font-mono uppercase text-slate-400 tracking-widest">
             Contextual Threat Assessment
           </span>
         </div>
-        <h3 className={`text-xl font-display font-extrabold tracking-wide ${config.color}`}>
+        <h3 className={`risk-banner-title text-xl font-display font-extrabold tracking-wide ${config.color}`}>
           {config.label}
         </h3>
         {showDescription && (
-          <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+          <p className="risk-banner-desc text-xs text-slate-300 mt-0.5 leading-relaxed">
             {config.desc}
           </p>
         )}

@@ -31,6 +31,8 @@ export default function AudioWaveformVisualizer({
   const playbackProgressRef = useRef(playbackProgress);
   playbackProgressRef.current = playbackProgress;
 
+  const getCanvasBg = () => (typeof document !== 'undefined' && document.documentElement.classList.contains('light') ? '#f8fafc' : '#04090e');
+
   // If audioBlob changes, decode audio buffer for static envelope mapping
   useEffect(() => {
     if (!audioBlob) {
@@ -100,8 +102,9 @@ export default function AudioWaveformVisualizer({
       if (!showGrid) return;
       ctx.save();
       
-      // Grid line colors (phosphor teal-green matrix overlay)
-      ctx.strokeStyle = 'rgba(0, 212, 170, 0.09)';
+      const isLight = typeof document !== 'undefined' && document.documentElement.classList.contains('light');
+      // Grid line colors (phosphor teal-green matrix overlay or clean slate grid)
+      ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 212, 170, 0.09)';
       ctx.lineWidth = 1;
 
       // Vertical grid lines
@@ -124,7 +127,7 @@ export default function AudioWaveformVisualizer({
 
       // Central baseline axis
       const midY = h / 2;
-      ctx.strokeStyle = 'rgba(0, 245, 212, 0.28)';
+      ctx.strokeStyle = isLight ? 'rgba(2, 132, 199, 0.25)' : 'rgba(0, 245, 212, 0.28)';
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.moveTo(0, midY);
@@ -201,8 +204,8 @@ export default function AudioWaveformVisualizer({
             smoothedVoiceEnergy += (rawVoice - smoothedVoiceEnergy) * 0.08;
           }
 
-          // Clear background (dark oscilloscope screen)
-          ctx.fillStyle = '#04090e';
+          // Clear background (oscilloscope screen)
+          ctx.fillStyle = getCanvasBg();
           ctx.fillRect(0, 0, w, h);
           drawGrid(w, h);
 
@@ -317,7 +320,7 @@ export default function AudioWaveformVisualizer({
         const h = height;
         const midY = h / 2;
 
-        ctx.fillStyle = '#04090e';
+        ctx.fillStyle = getCanvasBg();
         ctx.fillRect(0, 0, w, h);
         drawGrid(w, h);
 
@@ -483,7 +486,7 @@ export default function AudioWaveformVisualizer({
         const h = height;
         const midY = h / 2;
 
-        ctx.fillStyle = '#04090e';
+        ctx.fillStyle = getCanvasBg();
         ctx.fillRect(0, 0, w, h);
         drawGrid(w, h);
 

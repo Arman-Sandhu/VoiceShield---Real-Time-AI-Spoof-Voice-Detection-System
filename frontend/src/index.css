@@ -160,6 +160,245 @@ html.light .ambient-gradient {
               radial-gradient(circle at 0% 100%, rgba(2, 132, 199, 0.05) 0%, transparent 50%) !important;
 }
 
+/* ==========================================================================
+   LIGHT MODE COMPONENT SYSTEM ENHANCEMENTS
+   ========================================================================== */
+
+/* 1. Dashboard Callout Banner (resolves "somewhere it's so dark like img 1") */
+html.light .dashboard-callout-banner {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.12) 0%, #ffffff 50%, rgba(168, 85, 247, 0.12) 100%) !important;
+  border: 1px solid rgba(2, 132, 199, 0.25) !important;
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.06) !important;
+}
+html.light .dashboard-callout-banner h3 {
+  color: #0f172a !important;
+}
+html.light .dashboard-callout-banner p {
+  color: #475569 !important;
+}
+
+/* 2. Tables & History Lists in Light Mode */
+html.light .dashboard-table-card,
+html.light table {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html.light thead tr,
+html.light .dashboard-table-card thead tr {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+html.light tbody tr,
+html.light .dashboard-table-card tbody tr {
+  border-color: #f1f5f9 !important;
+}
+html.light tbody tr:hover,
+html.light .dashboard-table-card tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* 3. Threat Assessment Risk Banner (resolves "so light like in img 2") */
+html.light .risk-banner-critical {
+  background-color: #fee2e2 !important;
+  border: 1.5px solid #f87171 !important;
+  box-shadow: 0 8px 25px -4px rgba(239, 68, 68, 0.18) !important;
+}
+html.light .risk-banner-critical .risk-banner-icon {
+  background-color: #ef4444 !important;
+  border: 1px solid #dc2626 !important;
+  color: #ffffff !important;
+}
+html.light .risk-banner-critical .risk-banner-subtitle {
+  color: #991b1b !important;
+  font-weight: 700 !important;
+}
+html.light .risk-banner-critical .risk-banner-title {
+  color: #7f1d1d !important;
+  font-weight: 800 !important;
+}
+html.light .risk-banner-critical .risk-banner-desc {
+  color: #991b1b !important;
+  font-weight: 500 !important;
+}
+
+html.light .risk-banner-high {
+  background-color: #ffe4e6 !important;
+  border: 1.5px solid #fb7185 !important;
+  box-shadow: 0 8px 25px -4px rgba(244, 63, 94, 0.18) !important;
+}
+html.light .risk-banner-high .risk-banner-icon {
+  background-color: #f43f5e !important;
+  border: 1px solid #e11d48 !important;
+  color: #ffffff !important;
+}
+html.light .risk-banner-high .risk-banner-subtitle {
+  color: #9f1239 !important;
+  font-weight: 700 !important;
+}
+html.light .risk-banner-high .risk-banner-title {
+  color: #881337 !important;
+  font-weight: 800 !important;
+}
+html.light .risk-banner-high .risk-banner-desc {
+  color: #9f1239 !important;
+  font-weight: 500 !important;
+}
+
+html.light .risk-banner-medium {
+  background-color: #fef3c7 !important;
+  border: 1.5px solid #fcd34d !important;
+  box-shadow: 0 8px 25px -4px rgba(245, 158, 11, 0.18) !important;
+}
+html.light .risk-banner-medium .risk-banner-icon {
+  background-color: #f59e0b !important;
+  border: 1px solid #d97706 !important;
+  color: #ffffff !important;
+}
+html.light .risk-banner-medium .risk-banner-subtitle {
+  color: #92400e !important;
+  font-weight: 700 !important;
+}
+html.light .risk-banner-medium .risk-banner-title {
+  color: #78350f !important;
+  font-weight: 800 !important;
+}
+html.light .risk-banner-medium .risk-banner-desc {
+  color: #92400e !important;
+  font-weight: 500 !important;
+}
+
+html.light .risk-banner-low {
+  background-color: #dcfce7 !important;
+  border: 1.5px solid #86efac !important;
+  box-shadow: 0 8px 25px -4px rgba(16, 185, 129, 0.18) !important;
+}
+html.light .risk-banner-low .risk-banner-icon {
+  background-color: #10b981 !important;
+  border: 1px solid #059669 !important;
+  color: #ffffff !important;
+}
+html.light .risk-banner-low .risk-banner-subtitle {
+  color: #166534 !important;
+  font-weight: 700 !important;
+}
+html.light .risk-banner-low .risk-banner-title {
+  color: #14532d !important;
+  font-weight: 800 !important;
+}
+html.light .risk-banner-low .risk-banner-desc {
+  color: #166534 !important;
+  font-weight: 500 !important;
+}
+
+/* 4. ScoreGauge Track & Pill Badge in Light Mode */
+html.light .gauge-track-circle {
+  color: #e2e8f0 !important;
+}
+html.light .gauge-pill-badge {
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+html.light .gauge-pill-badge.bg-rose-500\/20 {
+  background-color: #fee2e2 !important;
+  border-color: #f87171 !important;
+  color: #991b1b !important;
+}
+html.light .gauge-pill-badge.bg-emerald-500\/20 {
+  background-color: #dcfce7 !important;
+  border-color: #4ade80 !important;
+  color: #166534 !important;
+}
+
+/* 5. Threat Indicators & Trigger Badges in Light Mode */
+html.light .threat-indicator-active {
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #991b1b !important;
+  font-weight: 600 !important;
+}
+html.light .threat-indicator-active.text-amber-300,
+html.light .threat-indicator-active.bg-amber-500\/10 {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
+}
+html.light .threat-indicator-safe {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+html.light .threat-summary-text {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+html.light .telemetry-metrics-box {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.light .transcription-trigger-box {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html.light .transcription-trigger-box p {
+  color: #1e293b !important;
+}
+html.light .transcription-trigger-badge {
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #991b1b !important;
+}
+html.light .defensive-action-critical {
+  background-color: #ffe4e6 !important;
+  border-color: #fecdd3 !important;
+  color: #881337 !important;
+}
+html.light .defensive-action-critical span {
+  color: #9f1239 !important;
+  font-weight: 700 !important;
+}
+html.light .defensive-action-critical p {
+  color: #881337 !important;
+}
+html.light .defensive-action-normal {
+  background-color: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+  color: #166534 !important;
+}
+html.light .defensive-action-normal span {
+  color: #14532d !important;
+  font-weight: 700 !important;
+}
+html.light .defensive-action-normal p {
+  color: #166534 !important;
+}
+
+/* 6. Audio Player Container in Light Mode */
+html.light .audio-player-container {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 6px 25px -4px rgba(0, 0, 0, 0.06) !important;
+}
+html.light .audio-player-container .text-slate-300 {
+  color: #0f172a !important;
+}
+html.light .audio-player-container .bg-\[\#0f1724\] {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 7. General Utility Enhancements for Light Contrast */
+html.light .bg-slate-800\/80 {
+  background-color: #e2e8f0 !important;
+}
+html.light .text-rose-200 {
+  color: #881337 !important;
+}
+html.light .bg-black\/40 {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
 html.light ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }

@@ -44,7 +44,8 @@ export default function ScoreGauge({
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="rgba(255, 255, 255, 0.08)"
+            stroke="currentColor"
+            className="text-white/[0.08] gauge-track-circle"
             strokeWidth="12"
             fill="transparent"
           />
@@ -87,7 +88,7 @@ export default function ScoreGauge({
           </motion.div>
 
           <span
-            className={`text-xs font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-full border ${
+            className={`gauge-pill-badge text-xs font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-full border ${
               isInconclusive
                 ? 'bg-slate-500/20 text-slate-300 border-slate-500/30'
                 : isFake
