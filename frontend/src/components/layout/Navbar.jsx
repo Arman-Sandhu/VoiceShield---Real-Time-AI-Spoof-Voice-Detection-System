@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, History, Mic, LogOut, User, Pencil, X, Check, Mail, Key, Shield, ChevronDown } from 'lucide-react';
+import { Activity, History, Mic, LogOut, User, Pencil, X, Check, Mail, Key, Shield, ChevronDown, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '../../services/auth';
 import Button from '../ui/Button';
@@ -17,8 +17,31 @@ export default function Navbar({ user, username, onUpdateUsername }) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('voiceshield_theme') || 'dark';
+    }
+    return 'dark';
+  });
 
   const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
+    }
+    try {
+      localStorage.setItem('voiceshield_theme', theme);
+    } catch (e) {}
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
 
   const handleOpenEditModal = () => {
     setEditNameInput(username || user?.displayName || '');
@@ -129,6 +152,15 @@ export default function Navbar({ user, username, onUpdateUsername }) {
             </div>
           ) : (
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-2 rounded-xl text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer"
+                title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+                aria-label="Toggle Theme"
+              >
+                {theme === 'light' ? <Sun size={16} className="text-amber-500" /> : <Moon size={16} className="text-[#00d4ff]" />}
+              </button>
               <Link to="/login">
                 <Button variant="primary" size="sm">
                   Sign In
@@ -216,7 +248,39 @@ export default function Navbar({ user, username, onUpdateUsername }) {
                     </div>
                   </div>
 
-                  <div className="py-3 space-y-1.5">
+                  <div className="pt-3 pb-1">
+                    <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`p-1.5 rounded-lg ${theme === 'light' ? 'bg-amber-500/20 text-amber-500' : 'bg-[#00d4ff]/15 text-[#00d4ff]'}`}>
+                          {theme === 'light' ? <Sun size={16} /> : <Moon size={16} />}
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-white">Appearance</p>
+                          <p className="text-[10px] text-slate-400 font-mono">
+                            {theme === 'light' ? 'Light Mode' : 'Dark Mode'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={toggleTheme}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/40 cursor-pointer ${
+                          theme === 'light' ? 'bg-[#0284c7]' : 'bg-slate-700'
+                        }`}
+                        role="switch"
+                        aria-checked={theme === 'light'}
+                        title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform ${
+                            theme === 'light' ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="py-2.5 space-y-1.5">
                     <button
                       type="button"
                       onClick={() => {
